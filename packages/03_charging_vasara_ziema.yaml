@@ -1,0 +1,589 @@
+input_boolean:
+  ziemos_rezimas_elektrinei:
+    name: "Charging3 - Žiemos režimas elektrinei"
+    icon: mdi:snowflake
+
+  akumuliatoriu_rankinis_rezervavimas:
+    name: "Charging3 - Akumuliatorių rankinis rezervavimas"
+    icon: mdi:shield-battery
+
+  reserve_battery_mode_before_winter:
+    name: "Charging3 - Reserve Battery Mode – išsaugota būsena"
+    icon: mdi:battery-lock
+
+  reserve_battery_mode_before_outage:
+    name: "Charging3 - Solis Reserve Battery Mode – prieš ESO atjungimą"
+    icon: mdi:battery-lock
+
+input_number:
+  reakcija_i_gamybos_prognoze:
+    name: "Charging3 - Solis reakcija į gamybos prognozę"
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: kWh
+    icon: mdi:weather-sunny-alert
+    mode: box
+
+  reakcija_i_dienos_max_generacija:
+    name: "Charging3 - Solis reakcija į dienos max generaciją"
+    min: 0
+    max: 30000
+    step: 1
+    unit_of_measurement: W
+    mode: box
+    icon: mdi:weather-sunny
+
+  solis_krovimo2_dienu_intervalas:
+    name: "Charging3 - Solis krovimo dienų intervalas"
+    min: 1
+    max: 100
+    step: 1
+    unit_of_measurement: d
+    icon: mdi:calendar-range
+    mode: box
+
+  akumuliatoriaus_rezervavimas:
+    name: "Charging3 - Solis akumuliatoriaus rezervavimas"
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:snowflake
+    mode: box
+
+  akumuliatoriaus_rezervavimas_vasarai:
+    name: "Charging3 - Solis akumuliatoriaus rezervavimas vasarai"
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:weather-sunny
+    mode: box
+
+input_datetime:
+  reakcija_i_laika:
+    name: "Charging3 - Reakcija į laiką"
+    has_date: false
+    has_time: true
+    icon: mdi:clock-outline
+
+  eso_pradzia:
+    name: "Charging3 - ESO pradžia"
+    has_date: true
+    has_time: true
+    icon: mdi:calendar-start
+
+  eso_pabaiga:
+    name: "Charging3 - ESO pabaiga"
+    has_date: true
+    has_time: true
+    icon: mdi:calendar-end
+
+  solis_krovimo2_laikas:
+    name: "Charging3 - Solis krovimo 2 laikas"
+    has_date: false
+    has_time: true
+    icon: mdi:solar-power-variant
+
+  solis_krovimo2_paskutinis_vykdymas:
+    name: "Charging3 - Solis krovimo 2 paskutinis vykdymas"
+    has_date: true
+    has_time: false
+    icon: mdi:history
+
+input_text:
+  eso_pavadinimas:
+    name: "Charging3 - Solis ESO įvykio pavadinimas"
+    icon: mdi:calendar-text
+
+input_button:
+  eso_sukurti:
+    name: "Charging3 - Sukurti ESO įvykį"
+    icon: mdi:calendar-plus
+
+automation:
+  - alias: Charging3 - akumuliatorių įkrovimas nuo saulės – dienos logika
+    triggers:
+      - at: "05:00:00"
+        id: new_day
+        trigger: time
+      - id: soc_threshold_reached
+        value_template: >
+          {{
+          states('sensor.solis_s6_eh3p_battery_soc')|float(0)
+            >= (states('sensor.solis_s6_eh3p_battery_soc')|float(0) + 10) }}
+        trigger: template
+      - id: battery_full
+        entity_id: sensor.solis_s6_eh3p_battery_soc
+        above: 99.9
+        for:
+          minutes: 1
+        trigger: numeric_state
+      - at: input_datetime.reakcija_i_laika
+        id: time_cutoff
+        trigger: time
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ziemos_rezimas_elektrinei
+        state: "off"
+    actions:
+      - choose:
+          - conditions:
+              - condition: trigger
+                id: new_day
+            sequence:
+              - choose:
+                  - conditions:
+                      - condition: template
+                        value_template: >
+                          {{
+                          states('sensor.solcast_pv_forecast_forecast_today')|float(0)
+                            < states('input_number.reakcija_i_gamybos_prognoze')|float(0) }}
+                    sequence:
+                      - target:
+                          entity_id: switch.feed_in_priority_mode
+                        action: switch.turn_off
+                  - conditions:
+                      - condition: template
+                        value_template: >
+                          {{
+                          states('sensor.solcast_pv_forecast_forecast_today')|float(0)
+                            > states('input_number.reakcija_i_gamybos_prognoze')|float(0) }}
+                      - condition: template
+                        value_template: >
+                          {{
+                          states('sensor.solcast_pv_forecast_peak_forecast_today')|float(0)
+                            > states('input_number.reakcija_i_dienos_max_generacija')|float(0) }}
+                    sequence:
+                      - target:
+                          entity_id: switch.feed_in_priority_mode
+                        action: switch.turn_on
+                  - conditions:
+                      - condition: template
+                        value_template: >
+                          {{
+                          states('sensor.solcast_pv_forecast_forecast_today')|float(0)
+                            > states('input_number.reakcija_i_gamybos_prognoze')|float(0) }}
+                      - condition: template
+                        value_template: >
+                          {{
+                          states('sensor.solcast_pv_forecast_peak_forecast_today')|float(0)
+                            < states('input_number.reakcija_i_dienos_max_generacija')|float(0) }}
+                    sequence:
+                      - choose:
+                          - conditions:
+                              - condition: template
+                                value_template: >
+                                  {{
+                                  states('sensor.solis_s6_eh3p_battery_soc')|float(0)
+                                    >= (states('sensor.solis_s6_eh3p_battery_soc')|float(0) + 10) }}
+                            sequence:
+                              - target:
+                                  entity_id: switch.feed_in_priority_mode
+                                action: switch.turn_on
+                        default:
+                          - target:
+                              entity_id: switch.feed_in_priority_mode
+                            action: switch.turn_off
+      - choose:
+          - conditions:
+              - condition: trigger
+                id: battery_full
+            sequence:
+              - target:
+                  entity_id: switch.feed_in_priority_mode
+                action: switch.turn_off
+      - choose:
+          - conditions:
+              - condition: trigger
+                id: time_cutoff
+              - condition: numeric_state
+                entity_id: sensor.solis_s6_eh3p_battery_soc
+                below: 100
+            sequence:
+              - target:
+                  entity_id: switch.feed_in_priority_mode
+                action: switch.turn_off
+      - choose:
+          - conditions:
+              - condition: trigger
+                id: soc_threshold_reached
+              - condition: template
+                value_template: |
+                  {{ states('sensor.solcast_pv_forecast_forecast_today')|float(0)
+                      > states('input_number.reakcija_i_gamybos_prognoze')|float(0) }}
+              - condition: template
+                value_template: >
+                  {{
+                  states('sensor.solcast_pv_forecast_peak_forecast_today')|float(0)
+                    < states('input_number.reakcija_i_dienos_max_generacija')|float(0) }}
+            sequence:
+              - choose:
+                  - conditions:
+                      - condition: time
+                        before: "12:00:00"
+                    sequence:
+                      - target:
+                          entity_id: switch.feed_in_priority_mode
+                        action: switch.turn_on
+                default:
+                  - target:
+                      entity_id: switch.feed_in_priority_mode
+                    action: switch.turn_off
+    mode: single
+
+  - alias: Charging3 - ESO – sukurti įvykį iš kortelės
+    description: ""
+    triggers:
+      - entity_id: input_button.eso_sukurti
+        trigger: state
+    conditions:
+      - condition: template
+        value_template: |-
+          {{ as_datetime(states('input_datetime.eso_pradzia'))
+              < as_datetime(states('input_datetime.eso_pabaiga')) }}
+    actions:
+      - target:
+          entity_id: calendar.eso_planiniai_darbai
+        data:
+          summary: "{{ states('input_text.eso_pavadinimas') or 'ESO atjungimas' }}"
+          start_date_time: "{{ states('input_datetime.eso_pradzia') }}"
+          end_date_time: "{{ states('input_datetime.eso_pabaiga') }}"
+          description: Planinis ESO atjungimas (sukurta iš kortelės)
+        action: calendar.create_event
+    mode: single
+
+  - alias: Charging3 -ESO planinis atjungimas – pasiruošimas ir atstatymas
+    description: ""
+    triggers:
+      - at: "00:00:30"
+        id: midnight
+        trigger: time
+      - event: start
+        id: ha_start
+        trigger: homeassistant
+      - entity_id: calendar.eso_planiniai_darbai
+        id: cal_update
+        trigger: state
+    conditions:
+      - condition: template
+        value_template: "{{ today_has_event }}"
+      - condition: template
+        value_template: |
+          {{ this.attributes.last_triggered is none
+              or as_local(this.attributes.last_triggered).date() != now().date() }}
+    actions:
+      - if:
+          - condition: trigger
+            id: ha_start
+        then:
+          - delay: "00:00:20"
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: switch.reserve_battery_mode
+                state: "on"
+            sequence:
+              - target:
+                  entity_id: input_boolean.reserve_battery_mode_before_outage
+                action: input_boolean.turn_on
+        default:
+          - target:
+              entity_id: input_boolean.reserve_battery_mode_before_outage
+            action: input_boolean.turn_off
+      - target:
+          entity_id: switch.grid_time_of_use_charging_period_1
+        action: switch.turn_on
+      - target:
+          entity_id: input_boolean.akumuliatoriu_rankinis_rezervavimas
+        action: input_boolean.turn_on
+      - target:
+          entity_id: switch.reserve_battery_mode
+        action: switch.turn_on
+      - target:
+          entity_id: number.solis_s6_eh3p_backup_soc
+        data:
+          value: 100
+        action: number.set_value
+      - wait_template: >
+          {{
+          (states('sensor.solis_s6_eh3p_battery_soc')|float(0)
+          >= 100)
+              or (event_end_ts is not none and now().timestamp() >= event_end_ts) }}
+      - if:
+          - condition: template
+            value_template: >-
+              {{
+              states('sensor.solis_s6_eh3p_battery_soc')|float(0)
+              >= 100 }}
+        then:
+          - target:
+              entity_id: switch.grid_time_of_use_charging_period_1
+            action: switch.turn_off
+      - wait_template: >-
+          {% set a = states('sensor.solis_s6_eh3p_a_phase_voltage')|float(999) %}
+          {% set b = states('sensor.solis_s6_eh3p_b_phase_voltage')|float(999) %}
+          {% set c = states('sensor.solis_s6_eh3p_c_phase_voltage')|float(999) %}
+          {{ (a == 0 or b == 0 or c == 0)
+              or (event_end_ts is not none and now().timestamp() >= event_end_ts) }}
+      - target:
+          entity_id: input_boolean.akumuliatoriu_rankinis_rezervavimas
+        action: input_boolean.turn_off
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.reserve_battery_mode_before_outage
+                state: "on"
+            sequence:
+              - target:
+                  entity_id: switch.reserve_battery_mode
+                action: switch.turn_on
+        default:
+          - target:
+              entity_id: switch.reserve_battery_mode
+            action: switch.turn_off
+      - target:
+          entity_id: number.solis_s6_eh3p_backup_soc
+        data:
+          value: "{{ old_backup|float(0) }}"
+        action: number.set_value
+      - target:
+          entity_id: switch.grid_time_of_use_charging_period_1
+        action: switch.turn_off
+    mode: single
+    initial_state: true
+    variables:
+      event_start_raw: "{{ state_attr('calendar.eso_planiniai_darbai', 'start_time') }}"
+      event_end_raw: "{{ state_attr('calendar.eso_planiniai_darbai', 'end_time') }}"
+      today_has_event: |
+        {{ event_start_raw is not none and
+            as_local(as_datetime(event_start_raw)).date() == now().date() }}
+      event_end_ts: >
+        {{ as_timestamp(as_local(as_datetime(event_end_raw))) if event_end_raw else
+        none }}
+      old_backup: >-
+        {{ states('number.solis_s6_eh3p_backup_soc')|float(0)
+        }}
+
+  - alias: Charging3 – periodinis krovimas
+    description: " (žiemą iki 100%)"
+    triggers:
+      - at: input_datetime.solis_krovimo2_laikas
+        trigger: time
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ziemos_rezimas_elektrinei
+        state: "on"
+      - condition: template
+        value_template: >-
+          {% set last = states('input_datetime.solis_krovimo2_paskutinis_vykdymas')
+          %} {% set interval =
+          states('input_number.solis_krovimo2_dienu_intervalas')|int(1) %} {% if
+          last in ['unknown','unavailable',''] %}
+            true
+          {% else %}
+            {% set d_last = as_datetime(last).date() %}
+            {{ (now().date() - d_last).days >= interval }}
+          {% endif %}
+    actions:
+      - target:
+          entity_id: input_number.akumuliatoriaus_rezervavimas
+        data:
+          value: 100
+        action: input_number.set_value
+      - target:
+          entity_id: switch.grid_time_of_use_charging_period_2
+        action: switch.turn_on
+      - target:
+          entity_id: input_datetime.solis_krovimo2_paskutinis_vykdymas
+        data:
+          date: "{{ now().date() }}"
+        action: input_datetime.set_datetime
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: >-
+                  {{
+                  states('sensor.solis_s6_eh3p_battery_soc')|float(0)
+                  >= 98 }}
+            sequence:
+              - target:
+                  entity_id: switch.grid_time_of_use_charging_period_2
+                action: switch.turn_off
+              - delay:
+                  minutes: 30
+              - target:
+                  entity_id: input_number.akumuliatoriaus_rezervavimas
+                data:
+                  value: "{{ rezervas_akum }}"
+                action: input_number.set_value
+        default:
+          - wait_for_trigger:
+              - value_template: >-
+                  {{
+                  states('sensor.solis_s6_eh3p_battery_soc')|float(0)
+                  >= 98 }}
+                trigger: template
+            continue_on_timeout: false
+          - target:
+              entity_id: switch.grid_time_of_use_charging_period_2
+            action: switch.turn_off
+          - delay:
+              minutes: 30
+          - target:
+              entity_id: input_number.akumuliatoriaus_rezervavimas
+            data:
+              value: "{{ rezervas_akum }}"
+            action: input_number.set_value
+    variables:
+      rezervas_akum: "{{ states('input_number.akumuliatoriaus_rezervavimas')|float(0) }}"
+    mode: restart
+
+  - alias: Charging3 - Žiemos režimo rezervas
+    triggers:
+      - entity_id: input_boolean.ziemos_rezimas_elektrinei
+        to: "on"
+        id: winter_on
+        trigger: state
+      - entity_id: input_boolean.ziemos_rezimas_elektrinei
+        to: "off"
+        id: winter_off
+        trigger: state
+      - entity_id:
+          - input_number.akumuliatoriaus_rezervavimas
+          - input_number.akumuliatoriaus_rezervavimas_vasarai
+        id: reserve_numbers_changed
+        trigger: state
+      - event: start
+        id: hass_start
+        trigger: homeassistant
+    conditions:
+      - condition: state
+        entity_id: input_boolean.akumuliatoriu_rankinis_rezervavimas
+        state: "off"
+    actions:
+      - choose:
+          - conditions:
+              - condition: trigger
+                id: winter_on
+            sequence:
+              - choose:
+                  - conditions:
+                      - condition: state
+                        entity_id: switch.reserve_battery_mode
+                        state: "on"
+                    sequence:
+                      - target:
+                          entity_id: input_boolean.reserve_battery_mode_before_winter
+                        action: input_boolean.turn_on
+                default:
+                  - target:
+                      entity_id: input_boolean.reserve_battery_mode_before_winter
+                    action: input_boolean.turn_off
+              - target:
+                  entity_id: number.solis_s6_eh3p_backup_soc
+                data:
+                  value: >-
+                    {{ states('input_number.akumuliatoriaus_rezervavimas')|float(0)
+                    }}
+                action: number.set_value
+              - target:
+                  entity_id: switch.feed_in_priority_mode
+                action: switch.turn_off
+              - target:
+                  entity_id: switch.reserve_battery_mode
+                action: switch.turn_on
+          - conditions:
+              - condition: trigger
+                id: winter_off
+            sequence:
+              - target:
+                  entity_id: number.solis_s6_eh3p_backup_soc
+                data:
+                  value: >-
+                    {{
+                    states('input_number.akumuliatoriaus_rezervavimas_vasarai')|float(0)
+                    }}
+                action: number.set_value
+              - choose:
+                  - conditions:
+                      - condition: state
+                        entity_id: input_boolean.reserve_battery_mode_before_winter
+                        state: "on"
+                    sequence:
+                      - target:
+                          entity_id: switch.reserve_battery_mode
+                        action: switch.turn_on
+                default:
+                  - target:
+                      entity_id: switch.reserve_battery_mode
+                    action: switch.turn_off
+          - conditions:
+              - condition: trigger
+                id: reserve_numbers_changed
+              - condition: state
+                entity_id: input_boolean.ziemos_rezimas_elektrinei
+                state: "on"
+            sequence:
+              - target:
+                  entity_id: number.solis_s6_eh3p_backup_soc
+                data:
+                  value: >-
+                    {{ states('input_number.akumuliatoriaus_rezervavimas')|float(0)
+                    }}
+                action: number.set_value
+              - target:
+                  entity_id: switch.reserve_battery_mode
+                action: switch.turn_on
+          - conditions:
+              - condition: trigger
+                id: reserve_numbers_changed
+              - condition: state
+                entity_id: input_boolean.ziemos_rezimas_elektrinei
+                state: "off"
+            sequence:
+              - target:
+                  entity_id: number.solis_s6_eh3p_backup_soc
+                data:
+                  value: >-
+                    {{
+                    states('input_number.akumuliatoriaus_rezervavimas_vasarai')|float(0)
+                    }}
+                action: number.set_value
+          - conditions:
+              - condition: trigger
+                id: hass_start
+              - condition: state
+                entity_id: input_boolean.ziemos_rezimas_elektrinei
+                state: "on"
+            sequence:
+              - target:
+                  entity_id: number.solis_s6_eh3p_backup_soc
+                data:
+                  value: >-
+                    {{ states('input_number.akumuliatoriaus_rezervavimas')|float(0)
+                    }}
+                action: number.set_value
+              - target:
+                  entity_id: switch.feed_in_priority_mode
+                action: switch.turn_off
+              - target:
+                  entity_id: switch.reserve_battery_mode
+                action: switch.turn_on
+          - conditions:
+              - condition: trigger
+                id: hass_start
+              - condition: state
+                entity_id: input_boolean.ziemos_rezimas_elektrinei
+                state: "off"
+            sequence:
+              - target:
+                  entity_id: number.solis_s6_eh3p_backup_soc
+                data:
+                  value: >-
+                    {{
+                    states('input_number.akumuliatoriaus_rezervavimas_vasarai')|float(0)
+                    }}
+                action: number.set_value
+    mode: restart
