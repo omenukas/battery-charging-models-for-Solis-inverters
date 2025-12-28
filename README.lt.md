@@ -35,6 +35,8 @@ Home Assistant **automatizacijos** ir **Lovelace kortelės** pateikiamos dviem k
 
 ## Struktūra
 ```
+packages/
+  ├─   # pilnas sensorių ir automatikų komplektas (YAML)
 automations/
   ├─ lt/  # lietuviškos automatikos (YAML)
   └─ en/  # angliškos automatikos (YAML)
