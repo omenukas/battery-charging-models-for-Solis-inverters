@@ -1,0 +1,10 @@
+type: vertical-stack
+cards:
+  - type: entities
+    entities:
+      - entity: input_number.charging_eso_balance_month_start
+      - entity: sensor.charging_eso_likutis_dabar
+      - entity: input_number.charging_battery_reserve_after_eso
+      - entity: input_number.01_charging_eso_kiek_krauti
+        name: Iki kiek krauti
+title: Kai baigiasi sukaupta ir kraunama naktiniu tarifu
