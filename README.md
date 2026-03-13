@@ -128,7 +128,7 @@ Atsisiųsti kortelę - [Akumuliatorių profilaktinio krovimo kortelė](cards/lt/
 
 Kiekvieno mėnesio pradžioje kortelėje ranka įrašome koks yra sukauptos elektros likutis iš ESO savitarnos. Scriptas seka kiek atiduodama į tinklą ir kiek paimama iš tinklo. Kai ESO pasaugojime likutis tampa neigiamas, išjungiamas žiemos režimas ir pradedamas vykdyti akumuliatorių krovimo scenarijus. Kortelėje nustatote baterijos rezervą ir iki kiek naktį įkrauti akumuliatorių. Krovimą pradeda vidurnaktį ir pilnai įkrovus laiko tokią įkrovą, kol prasideda dieninis tarifas. Prasidėjus dieniniam tarifui, akumuliatoriams leidžiama išsikrauti iki pasirinktos baterijos rezervavimo reikšmės. Kai ESO balansas tampa vėl teigiamas, scriptas nebeveikia ir naktimis nebekrauna akumuliatorių. Svarbu, kad į žieminį režimą jau nebegrįžtama (tiesiog tikėtina, kad teigiamas balansas bus jau pavasarį). Žiemą iki kiek krauti visada laikau 100%, bet pavasarį, kai jau šviečia saulė, mažinu įkrovimą ir leidžiu įkrauti tik tiek, kad užtektų nuo dieninio tarifo pradžios iki kol užteks namui gamybos nuo saulės.
 
-Atsisiųsti kortelę - [Akumuliatorių profilaktinio krovimo kortelė](cards/lt/lt_preventive_battery_charging.yaml) 
+Atsisiųsti kortelę - [Akumuliatorių krovimas kai baigiasi ESO](cards/lt/lt_eso_balance_ended.yaml) 
 ## Pabaigai
 Visi reikalingi helper sensoriai yra sukuriami packages failuose, tačiau inverterio, apskaitos Solcast sensorius turite būtinai parinkti pagal savo turimus.
 
