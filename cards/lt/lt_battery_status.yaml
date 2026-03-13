@@ -11,11 +11,11 @@ cards:
   - type: horizontal-stack
     cards:
       - type: entity
-        entity: number.solis_waveshare_backup_soc
         name: Nustatytas rezervavimas
+        entity: sensor.solis_s6_eh3p_backup_soc
       - type: entity
-        entity: sensor.solis_waveshare_battery_soc
         name: Baterijos įkrova
+        entity: sensor.solis_s6_eh3p_battery_soc
 grid_options:
   columns: full
   rows: auto
