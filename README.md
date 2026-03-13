@@ -1,138 +1,148 @@
-# Home Assistant – Solis Battery Charging Automations & Cards (LT/EN)
+# Home Assistant – Solis baterijų krovimo automatikos ir kortelės (LT/EN)
 
 <a href="https://buymeacoffee.com/omenukas">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42">
 </a>
 
-🔵 **This is the English version.** 
 
-🟡 [Lietuviška versija](https://omenukas.github.io/battery-charging-models-for-Solis-inverters/lt.html) ·
-[Website](https://omenukas.github.io/battery-charging-models-for-Solis-inverters/)
 
-## Overview
+[Svetainė](https://omenukas.github.io/battery-charging-models-for-Solis-inverters/)
 
-This repository contains several automations that help operate and maintain batteries connected to a **Solis** inverter. You can adapt the logic to other inverter brands by selecting the appropriate sensors; however, this project is built around the [Solis modbus](https://github.com/Pho3niX90/solis_modbus) integration.  
-I use a **Waveshare** Modbus adapter, so my Solis sensor entity IDs follow that naming. You will likely need to adjust the entity IDs to match your setup.
-
-My Solis dashboard looks like this:
-
-![dashboard](docs/img/dashboard_overview_EN.jpg)
-
-Home Assistant **automations** and **Lovelace cards** are provided in two languages: **Lithuanian (LT)** and **English (EN)**. LT is the default; every directory has an EN counterpart.
-
-## Structure
+**ATNAUJINTA (2025-12-28)**. Visi reikalingi sensoriai ir automatizacijos sudėtos į du packages yaml failus. 
+Atsisiųskite [03_charging_vasara_ziema.yaml](packages/03_charging_vasara_ziema.yaml) ir [01_charging_eso.yaml](packages/01_charging_eso.yaml), įdėkite šiuos failus į aplanką `config/packages/`.
+`configuration.yaml`, jeigu dar neturite, įrašykite:
 ```
+homeassistant:
+  packages: !include_dir_named packages
+```
+Restartuoti Home Assistant.
+Bus sukurti visi reikalingi sensoriai ir automatizacijos.
+
+**ATNAUJINTA (2025-09-21)**. Automatizacijose tikrinama ar inverteryje įjungtas baterijų rezervavimas (Battery Reserve) ir skriptų pabaigoje grąžina į buvusią padėtį. Taip pat pakoreguota kasdieninė baterijų krovimo logika.
+
+## Apžvalga
+
+Šiame repozitoriume pateikiu keletą automatizacijų, kurios galėtų padėti valdyti ir prižiūrėti, kaupiklius, prijungtus prie Jūsų Solis įtampos keitiklio. Galima automatizacijas pritaikyti ir kitų gamintojų įtampos keitikliams, parenkant tinkamus sensorius, tačiau šis projektas paruoštas, naudojant [Solis modbus](https://github.com/Pho3niX90/solis_modbus) integraciją. Kadangi naudoju Waveshare modbus keitiklį, tai Solis integracijoje sensoriai turi atitinkamus pavadinimus, kuriuos automatizacijose jums gali reikėti pakoreguoti pagal savo sensorių atitinkamus pavadinimus.
+Mano Solis dashboard'as atrodo taip:
+ 
+![dashboard](docs/img/dashboard_overview.jpg)
+
+
+
+Home Assistant **automatizacijos** ir **Lovelace kortelės** pateikiamos dviem kalbomis: **lietuviškai (LT)** ir **angliškai (EN)**. LT yra numatytoji; kiekviename kataloge yra atitikmuo EN.
+
+## Struktūra
+```
+packages/
+  ├─   # pilnas sensorių ir automatikų komplektas (YAML)
 automations/
-  ├─ lt/  # Lithuanian automations (YAML)
-  └─ en/  # English automations (YAML)
+  ├─ lt/  # lietuviškos automatikos (YAML)
+  └─ en/  # angliškos automatikos (YAML)
 cards/
-  ├─ lt/  # Lithuanian Lovelace cards (YAML)
-  └─ en/  # English Lovelace cards (YAML)
+  ├─ lt/  # lietuviškos Lovelace kortelės (YAML)
+  └─ en/  # angliškos Lovelace kortelės (YAML)
 helpers/
-  ├─ lt/helpers_lt.yaml  # LT helpers with icons
-  └─ en/helpers_en.yaml  # EN helpers with icons
+  ├─ lt/helpers_lt.yaml  # LT helperių aprašymai su ikonėlėmis
+  └─ en/helpers_en.yaml  # EN helperių aprašymai su ikonėlėmis
 ```
 
-## How to use
-1. **Helpers**  
-   These automations and cards rely on multiple **helpers** (entities). Please create them first. **IMPORTANT:** use a single language across automations, cards, and helpers — either **English only** or **Lithuanian only**.
-   - YAML users: include `helpers/en/helpers_en.yaml` **or** `helpers/lt/helpers_lt.yaml` in `configuration.yaml`.
-   - If you created helpers via the UI, use the files as a reference for names/icons and **double‑check the Entity IDs**.
+## Kaip naudoti
+1. **Helperiai**
+   Automatizacijose ir kortelėse naudojama visa eilė helper tipo subjektų (entity). Todėl pradžioje reikia sukurti visus reikalingus helper'ius. **SVARBU** naudoti tos pačios kalbos automatizacijas, korteles ir helper'ius - Visi komponentai turi būti arba tik angliški arba tik lietuviški.
+   - YAML naudotojams: įtraukite `helpers/lt/helpers_lt.yaml` **arba** `helpers/en/helpers_en.yaml` į `configuration.yaml`.
+   - Jei helperius kūrėte per UI, tai šiuos failus naudokite kaip pavyzdį pavadinimams/ikonėlėms. Nepamirškite patikrinti ar susikūrė tiksliai toks Entity ID.
 
-2. **Automations**  
-   - The provided YAML is ready for **copy/paste into a new UI automation**:  
-     *Settings → Automations & Scenes → + Create automation → Create new automation → (top‑right) ⋮ → Edit in YAML →* clear the editor and paste the selected automation’s `.yaml` → **Save**.
-   - Alternatively, place the YAML into `config/automations/` (you may need to adapt the script block format) and **reload automations**.
+2. **Automatikos**  
+   - Automatizacijų failai pritaikyti copy/paste į naują UI automatizacijos skriptą:
+Sukurti naują automatizaciją - Settings->Automations&Scenes->+Create automation->pasirenkama "Create new automation"->dešiniame viršutiniame kampe paspausti ant 3 taškų->pasirinkti "Edit in YAML"-> atsidariusiame lange išvalyti, kad neliktų jokio įrašo ir įklijuoti pasirnkto automatizacijos .yaml failo turinį ->Save.
+Taip pat .yaml turinį galite įdėti tiesiai į `config/automations/` (reikės pakoreguoti skripto sintaksę) ir **perkraukite automatikas**.
 
-## Automations explained
-
-**Battery charging from solar – daytime logic**
-
+## Automatikų paaiškinimai
+**Akumuliatorių įkrovimas nuo saulės – dienos logika**
 > [!IMPORTANT]
-> **NOTE:** this automation is intended for setups where the PV system’s **instantaneous feed‑in limit** (as defined by your grid operator) can be exceeded, the user is on a **fixed‑rate electricity plan** and uses **net‑metering**. If you have **net‑billing**, **exchange/spot‑price plans**, or want to participate in **grid balancing**, you’ll need different automations (I may add them in the future).
+> **PASTABA:** ši automatizacija aktuali tiems, kurių saulės elektrinės momentinė generacija viršyja elektros tinklų (ESO) išduotas sąlygas, turi fiksuotus elektros tiekimo planus ir net-metering apskaitos planą. Net-billing, planų pagal biržos kainas ir norint prisidėti prie tinklų balansavimo, reikalingos kitos automatizacijos, prie kurių galimai ateityje irgi prieisiu.
 
-![Generation forecast](docs/img/generation_forecast_EN.jpg)
+![Generation forecast](docs/img/generation_forecast.jpg)
 
-This script requires an additional Home Assistant integration: [Solcast_forecast](https://github.com/david-rapan/ha-solcast).  
-It uses a couple of sensors to evaluate **today’s total generation forecast** and **today’s peak generation**.  
-**Goal:** decide whether there will be enough solar production today and plan when to charge the batteries so they reach **100% by night**.
+Šiam scriptui reikalinga papildoma [Solcast_forecast](https://github.com/david-rapan/ha-solcast)  integracija į Home Assistant. 
+Iš šios integracijos bus naudojama pora sensorių einamos dienos prognozuojamai gamybai ir maksimaliai generacijai įvertinti.
+Paskirtis - įvertinti ar numatoma pakankama elektos gamyba iš saulės ir pagal tai suplanuoti, kada bus kraunamos baterijos, kad nakčiai jos būtų pilnai įkrautos.
+Kaip tai veikia:
+- žinodami savo dienos elektros poreikį ir baterijų talpą, galite numatyti, koks reikalingas energijos kiekis, kad dienos metu būtų patenkinami momentinio elektros suvartojimo poreikiai ir, kad įkrauti iki 100% baterijas. Ši reikšmė įrašoma kortelėje į `Reakcija į gamybos prognozę`. Jeigu prognozė yra mažesnė, nei jūsų užduota, tai inverteris visą dieną dirbs "Self use" režimu, taip suteikdamas pirmenybę baterijų įkrovimui.
+- Tuo atveju, jeigu prognozuojama gamyba yra didesnė, nei jūsų užduota, tikrinama ar numatomas generacijos pikas yra didesnis, nei jūsų užduotas `Reakcija į max generaciją`. Jeigu prognozė didesnė, nei jūsų užduota - inverteris persijungia į "Selling first" režimą, taip suteikdamas pirmenybę atiduoti pagamintą elektros energiją į tinklą. Jeigu ši prognozė yra mažesnė, nei jūsų užduota reikšmė, tai tikrinama ar baterijose yra pakankamas likutis (nustatytas baterijos backup rezervas + 10%)ir , jeigu jis nepakankamas, tai inverteris lieka dirbti "Self use" režimu, kol pasieks pakankamą įkrovą. Jeigu įkrova yra pakankama ir laikas yra iki vidurdienio, tai inverteris perjungiamas į "Selling first" režimą.
+- Kodėl tokia logika: Elektros tinklai nustato leidžiamą generuoti į tinklą galią, ir ją pasiekus, reikia riboti arba gamybą arba perteklių atiduoti baterijų įkrovimui. Todėl į lauką `Reakcija į max generaciją` patartina įrašyti šiek tiek mažesnę reikšmę, nei jums ESO išdavė sąlygose leistiną generuoti (dėl prognozių paklaidos) ir pradžioje baterijos nebus kraunamos, kad jeigu vis viršijama leistina gamybą, tai tą perviršį panaudos baterijų įkrovimui. 
+- `Reakcija į laiką` - įrašote laiką, kada akumuliatoriai turi būti jau pilnai įkrauti. Jeigu inverteris dirbs "Selling first" režimu, tai bus perjungtas į "Self use", kad pilnai įkrauti baterijas, jei iki to laiko dar nebuvo tai padaryta.
+ Padariau rankinį laiko pasirinkimą, nes nesugalvojau, kaip tą galima būtų automatizuoti, įvertinant metų laikus (kada pradeda saulė leisti), kitus galimus faktorius.
 
-How it works:
-- Knowing your **daily consumption** and **battery capacity**, determine the energy you want covered by solar to meet daytime loads and still charge batteries to 100%. Enter that value on the card in **“Generation Forecast Threshold”**. If the forecast is **lower** than your threshold, the inverter stays in **“Self use”** for the day, prioritising battery charging.
-- If the **total forecast** is higher than your threshold, the automation checks today’s **peak generation forecast** against **“Peak Generation Threshold”**. If the peak is **below** your threshold, the inverter **remains in “Self use”**. If the peak is **higher**, the inverter **switches to “Selling first”**, prioritising export to the grid.
-- **Why this logic:** grid operators define a **maximum permitted feed‑in power**. When you’re likely to exceed it, you want that surplus to go into the batteries instead of being curtailed. Therefore, set **“Peak Generation Threshold”** **slightly lower** than your permitted feed‑in limit (to account for forecast error). If the forecast suggests you **won’t** exceed the limit, there’s no point keeping the batteries low — let the inverter charge them from the morning and export the excess later.
-- **“Time Cutoff”** — set the time by which the batteries **must be full**. If the inverter is still in **“Selling first”** near that time, it will switch back to **“Self use”** to finish charging to 100%.
+Atsisiųsti kortelę - [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt_generation_forecasts.yaml) 
+     
+Atsisiųsti automatizacijos skriptą - [Akumuliatorių krovimo nuo saulės skriptas](automations/lt/lt_solar_daytime_charging.yaml) 
 
-Download the card — **[Solar Generation Forecasts card](cards/en/cards_en_generation_forecasts.yaml)**  
-Download the automation — **[Solar Daytime Charging](automations/en/solar_daytime_charging.yaml)**
+**Elektros planiniai atjungimai (ESO planiniai darbai)**
 
----
+![Grid planned outages](docs/img/grid_planned_outages.jpg)
 
-**Planned grid outages**
+Bent jau mano praktikoje, kai elektros tinklai numato elektros atjungimus, tai jie beveik visada būna nuo ryto, kai akumuliatoriai būna išsikrovę po nakties, bet saulės elektrinė dar tik pradeda gamybą. Todėl, gavus iš elektros tinklų pranešimą apie numatomą elektros atjungimą, galima iš anksto pasirūpinti, kad tą dieną, kai bus atjungiama elektra, akumuliatoriai būtų pilnai įkrauti. 
+Tam reikalinga papildoma lokalaus Home Assistant kalendoriaus integracija. Reikia sukurti naują kalendorių `calendar.eso_planiniai_darbai`:
+Home Assistant->Settings->Devices&Services->+Add integration->per paiešką surandame ir pasirenkame "Local calendar"->atsidariusioje lentelėje "Calendar name" įrašome **BŪTINAI** `eso planiniai darbai`ir pažymime "Create an empty calendar"->spaudžiame "Submit" ir "Finnish". Susikūrė naujas kalendorius į kurį bus registruojami elektros tinklų planiniai darbai. Dar kartą pasitikrinkite ar tikrai susikūrė kalendorius, kurio entity `calendar.eso_planiniai_darbai`.
+Kaip tai veikia:
+   - Gavus pranešimą iš elektros tinklų, į "ESO planiniai darbai" kortelę įrašome darbu pradžios ir pabaigos datą ir laiką. Paspaudus mygtuką "Sukurti ESO įvykį", kalendoriuje tai dienai sukuriamas įvykis.
+   - Automatizacija, vidurnaktį aptikusi, kad tą dieną numatomas elektros atjungimas, pradeda vykdyti tokį scenarijų:
+   - inverteryje įjungia `switch.grid_time_of_use_charging_period_1`- įjungia priverstinį baterijų krovimą iš tinklo. Šį TOU inverteryje reikėtų turėti iš anksto pasiruoštą. Jeigu jis jau naudojamas kitur, tai pasirinkti kitą laisvą ir nepamiršti padaryti pataisymus automatizacijose. Kadangi pas mane baterijos aukštos įtampos, tai mano nustatymai tokie:
+     Charge Time Slot 1 - 00:00-06:00;
+     Charge Current 1 - 20A
+     SOC1 - 100%
+     Šiuos nustatymus galima padaryti tiek SolisCloud programėlėje, tiek HA Solis modbus integracijoje.
+   - įjungia `input_boolean.akumuliatoriu_rankinis_rezervavimas`- Home Assistant virtualus jungiklis, kurį sukūrėte Helper dalyje. Reikalinga, kad atjungti kitas galbūt tuo metu naudojamas automatizacijas.
+   - inverteryje įjungia `switch.reserve_battery_mode`, jeigu jis nebuvo įjungtas. Prieš tai įsimenama jo būsena.
+   - įsimena esamą `number.solis_waveshare_backup_soc`- įsimena, koks inverteryje šiuo metu nustatytas baterijų backup rezervavimas, kad vėliau žinotų kokias reikšmes atstatyti
+   - `number.solis_waveshare_backup_soc` reikšmę nustato į "100" - nustato baterijų rezervavimą į "100%", kad neleistų akumuliatoriams išsikraudinėti, kol nedingo elektros tiekimas iš tinklų;
+   - Prasideda baterijų krovimas iš tinklo. Pasiekus akumuliatorių 100% įkrovą, išjungiamas inverteryje `switch.grid_time_of_use_charging_period_1`, tačiau baterijos rezervavimas lieka įjungtas ir rezervas nustatytas 100%. Tokiu būdu ryte akumuliatoriai bus pilnai įkrauti, o automatizacija lauks kol dings įtampa bent vienoje į įvadinių fazių arba ateis laikas, kuris kalendoriuje pažymėtas, kaip darbų pabaiga. Išpildžius bent vieną iš sąlygų, automatizacija grąžins visus inverterio nustatymus į pradinę būseną, Home Assistant vėl pradės veikti "Žiemos režimas" (aprašytas žemiau), jei jis buvo įjungtas.
 
-![Grid planned outages](docs/img/grid_planned_outages_EN.jpg)
+Atsisiųsti kortelę - [ESO planiniai darbai kortelė](cards/lt/lt_grid_planned_outages.yaml) 
+     
+Atsisiųsti automatizacijos skriptą - [ESO planiniai darbai skriptas](automations/lt/lt_grid_planned_outage_prep_restore.yaml) 
 
-In my area, planned outages are almost always **in the morning**, when the batteries have **discharged overnight** and the PV system has not yet ramped up. When you receive a planned‑outage notice from the grid operator, you can make sure the batteries are **fully charged on that day**.
+Atsisiųsti įvykio kalendoriuje sukūrimo skriptą - [ESO įvykio sukūrimo skriptas](automations/lt/lt_grid_create_event_from_card.yaml) 
 
-This requires the **Local Calendar** integration. Create a calendar named exactly **“grid planned outages”** so the entity becomes **`calendar.grid_planned_outages`**:  
-*Home Assistant → Settings → Devices & Services → + Add integration → “Local calendar” →* set **Calendar name** to `grid planned outages` and tick **Create an empty calendar** → **Submit** → **Finish**.  
-Verify the entity exists as **`calendar.grid_planned_outages`**.
+**Žiemos režimas**  
 
-How it works:
-- After receiving the notice, enter the **start** and **end** date/time in the **Grid Planned Outages** card. Click **“Create Grid Event”** — an event will be added to the calendar for that day.
-- At **00:00** on the planned day, the automation:
-  - turns **on** `switch.grid_time_of_use_charging_period_1` (forced charging from grid). Prepare this TOU slot on the inverter in advance. My Solis HV battery defaults:  
-    **Charge Time Slot 1:** `00:00–06:00` · **Charge Current 1:** `20A` · **SOC1:** `100%`.  
-    (Settable either in SolisCloud or via the Solis Modbus integration.)
-  - turns **on** `input_boolean.manual_battery_reserve` — a HA virtual switch used to temporarily suspend other charging automations.
-  - turns **on** `switch.reserve_battery_mode` — I normally keep the inverter’s reserve mode **off**, so here it is enabled temporarily to keep batteries full until the outage.
-  - remembers the current `number.solis_waveshare_backup_soc`, then **sets it to 100** to prevent discharge before the outage.
-- Charging from grid starts. Once the batteries reach **100%**, `switch.grid_time_of_use_charging_period_1` is **turned off**, but reserve mode **remains on** and backup SOC stays **100%**. The automation then **waits** for either a **phase voltage drop** (outage begins) or the **calendar end time**. When either occurs, it **restores** the inverter settings and resumes normal logic (e.g., **Winter Mode** if it was enabled).
+![Winter mode](docs/img/winter_mode.jpg)
 
-Download the card — **[Grid Planned Outages card](cards/en/cards_en_grid_planned_outages.yaml)**  
-Download the automation — **[Grid Planned Outage – Preparation & Restore](automations/en/grid_planned_outage_prep_restore.yaml)**  
-Download the event‑creation automation — **[Create Grid Event from Card](automations/en/grid_create_event_from_card.yaml)**
+Žiemą, kai nėra elektros gamybos iš saulės, veikia šilumos siurbliai, akumuliatoriai tampa beveik nereikalingi. Tačiau jie vis dar gali atlikti savo pagrindinę funkciją - užtikrinti elektros tiekimą į namus, kai dingsta elektros tiekimas iš tinklų.
+Ką daro ši automatizacija:
+   - Kortelėje įjungus `Žiemos režimas`, įjungiamas inverteryje baterijų backup rezervavimas ir "Self use" režimas (jeigu dar nebuvo įjungti) ir nustatomas rezervo SOC toks, kokia reikšmė yra jūsų pačių pasirinkta laukelyje `Rezervas žiemai`. Tai reiškia, kad žiemos režimo metu ir kol yra elektros tiekimas iš tinklų, jūsų inverterio akumuliatoriai niekada neišsikraus žemiau užduotos ribos.
+   - Išjungus žiemos režimą, bus atsatytas baterijų rezervavimas į būseną, kuri buvo prieš žiemos režimą, ir baterijų backup rezervas nustatomas į tokią reikšmę, kokia reikšmė yra jūsų pačių pasirinkta laukelyje `Rezervas vasarai`. 
+   - Ši automatizacija turi dar vieną saugiklį - jos vykdymas nutraukiamas, jeigu įjungiamas `input_boolean.akumuliatoriu_rankinis_rezervavimas`. Šį jungiklį junginėja kitos su akumuliatorių krovimu susijusios automatizacijos, kad įgautų prioritetą.
 
----
-
-**Winter Mode**
-
-![Winter mode](docs/img/winter_mode_EN.jpg)
-
-In winter, solar generation is low while heating loads are higher, so batteries are less useful for daily cycling — but they still serve their **backup** role. This automation:
-
-- When **Winter Mode** is turned **on** on the card, it **enables** the inverter’s **reserve/backup mode** and sets **backup SOC** to the value from **“Reserve (Winter)”**. While grid power is available, the batteries **will not discharge below** that threshold.
-- When Winter Mode is turned **off**, it **disables** reserve mode and sets backup SOC to **“Reserve (Summer)”**. (I keep this value for potential future use, even though reserve mode is off in summer.)
-- Safety interlock: execution is aborted if `input_boolean.manual_battery_reserve` is **on** — other charging workflows can take priority.
-
-Download the card — **[Winter Mode & Reserves card](cards/en/cards_en_winter_mode_reserves.yaml)**  
-Download the automation — **[Winter Mode Reserve](automations/en/winter_mode_reserve.yaml)**
-
----
-
-**Preventive battery charging**
-
-![Preventive charging](docs/img/preventive_charging_EN.jpg)
-
-In winter, batteries rarely reach **100%** from solar alone, which may accelerate **degradation** over long periods. This automation ensures a **periodic full charge**.
-
-- Runs **only when Winter Mode is enabled**.
-- On the card, set the **charging interval (days)** and the **start time** for forced grid charging.
-- The automation turns **on** `switch.grid_time_of_use_charging_period_2` (forced charging from grid). Prepare this TOU slot in advance. My defaults:  
-  **Charge Time Slot 2:** `00:00–00:00` · **Charge Current 2:** `20A` · **SOC2:** `100%`.
-
-Download the card — **[Preventive Battery Charging card](cards/en/cards_en_preventive_battery_charging.yaml)**  
-Download the automation — **[Solar – Periodic Charging](automations/en/solar_periodic_charging.yaml)**
-
-## Final words
-
-I’m still a relatively new user of a hybrid PV‑battery system, so there is always room for improvement and I may have missed some edge cases. Feedback and suggestions are welcome, and I’ll keep refining these automations as time permits.
+Atsisiųsti kortelę - [Žiemos režimo kortelė](cards/lt/lt_winter_mode_reserves.yaml) 
+     
+Atsisiųsti automatizacijos skriptą - [Žiemos režimo skriptas](automations/lt/lt_winter_mode_reserve.yaml) 
 
 
+**Akumuliatorių profilaktinis įkrovimas**
 
-If you find this useful, you can support my work:
+![Preventive charging](docs/img/preventive_charging.jpg)
+
+Kadangi žiemą akumuliatoriai nuo saulės turi mažai šansų įsikrauti iki 100% ir ilgesniam laiko periodui tai turi įtaką pačių baterijų degradacijai, tai ši automatizacija pasirūpina, kad kartais baterijos būtų pilnai ikraunamos.
+Ši automatizacija veikia tik tada, kai yra įjungtas "Žiemos režimas" 
+Kortelėje galite nustatyti profilaktinio įkrovimo periodiškumą ir laiką, kada prasidės priverstinis krovimas iš tinklo.
+Ši automatizacija inverteryje įjungia `switch.grid_time_of_use_charging_period_2`- priverstinį baterijų krovimą iš tinklo. Šį TOU inverteryje reikėtų turėti iš anksto pasiruoštą. Jeigu jis jau naudojamas kitur, tai pasirinkti kitą laisvą ir nepamiršti padaryti pataisymus automatizacijose.
+Mano inverteryje nustatyta taip:
+     Charge Time Slot 2 - 00:00-00:00;
+     Charge Current 2 - 20A
+     SOC2 - 100%
+
+Atsisiųsti kortelę - [Akumuliatorių profilaktinio krovimo kortelė](cards/lt/lt_preventive_battery_charging.yaml) 
+     
+Atsisiųsti automatizacijos skriptą - [Akumuliatorių profilaktinio krovimo skriptas](automations/lt/lt_solar_periodic_charging.yaml) 
+
+## Pabaigai
+
+Esu dar jaunas naudotojas hibridinės sistemos, todėl tikrai yra dar ką tobulinti ir galimai ne viską įvertinau. Todėl pastabos, komentarai priimami ir, kiek leis laikas ir galimybės bandysiu tobulinti šias automatizacijas.
 
 
+Jeigu patiko mano darbas, visada galite tai įvertinti 
 
 <a href="https://buymeacoffee.com/omenukas">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42">
@@ -140,17 +150,17 @@ If you find this useful, you can support my work:
 
 <div align="center">
   <a href="https://github.com/omenukas/battery-charging-models-for-Solis-inverters">
-    <img src="https://img.shields.io/badge/GitHub-View%20repository-181717?logo=github" alt="View repository on GitHub">
+    <img src="https://img.shields.io/badge/GitHub-Peržiūrėti%20repo-181717?logo=github" alt="Peržiūrėti repo GitHub'e">
   </a>
   &nbsp;
   <a href="https://github.com/omenukas/battery-charging-models-for-Solis-inverters/archive/refs/heads/main.zip">
-    <img src="https://img.shields.io/badge/Download-ALL--IN--ONE%20ZIP-2ea44f" alt="Download ZIP">
+    <img src="https://img.shields.io/badge/Atsisiųsti-ALL--IN--ONE%20ZIP-2ea44f" alt="Atsisiųsti ZIP">
   </a>
 </div>
 
 <p align="center">
-  <a href="https://github.com/omenukas/battery-charging-models-for-Solis-inverters"
+  <a href="https://github.com/omenukas/battery-charging-models-for-Solis-inverters/blob/main/README.lt.md"
      style="display:inline-block;padding:10px 16px;border:1px solid #0366d6;border-radius:6px;text-decoration:none;">
-    View repository on GitHub →
+    Eiti į GitHub repo →
   </a>
 </p>
