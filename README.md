@@ -17,6 +17,7 @@ homeassistant:
 ```
 Restartuoti Home Assistant.
 Bus sukurti visi reikalingi sensoriai ir automatizacijos.
+
 Taip pat pridėta nauja automatizacija ir kortelė, tam atvejui, kai pasibaigia žiemą sukauptos pasaugojime kilovatvalandės ir turite ESO dviejų tarifų (dieninis/naktinis) planą.
 
 **ATNAUJINTA (2025-09-21)**. Automatizacijose tikrinama ar inverteryje įjungtas baterijų rezervavimas (Battery Reserve) ir skriptų pabaigoje grąžina į buvusią padėtį. Taip pat pakoreguota kasdieninė baterijų krovimo logika.
