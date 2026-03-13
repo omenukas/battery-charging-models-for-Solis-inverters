@@ -1,4 +1,4 @@
-# Home Assistant – Solis baterijų krovimo automatikos ir kortelės (LT/EN)
+# Home Assistant – Solis baterijų krovimo automatikos ir kortelės
 
 <a href="https://buymeacoffee.com/omenukas">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42">
@@ -29,33 +29,17 @@ Mano Solis dashboard'as atrodo taip:
 
 
 
-Home Assistant **automatizacijos** ir **Lovelace kortelės** pateikiamos dviem kalbomis: **lietuviškai (LT)** ir **angliškai (EN)**. LT yra numatytoji; kiekviename kataloge yra atitikmuo EN.
+
 
 ## Struktūra
 ```
 packages/
   ├─   # pilnas sensorių ir automatikų komplektas (YAML)
-automations/
-  ├─ lt/  # lietuviškos automatikos (YAML)
-  └─ en/  # angliškos automatikos (YAML)
 cards/
   ├─ lt/  # lietuviškos Lovelace kortelės (YAML)
-  └─ en/  # angliškos Lovelace kortelės (YAML)
-helpers/
-  ├─ lt/helpers_lt.yaml  # LT helperių aprašymai su ikonėlėmis
-  └─ en/helpers_en.yaml  # EN helperių aprašymai su ikonėlėmis
+
 ```
 
-## Kaip naudoti
-1. **Helperiai**
-   Automatizacijose ir kortelėse naudojama visa eilė helper tipo subjektų (entity). Todėl pradžioje reikia sukurti visus reikalingus helper'ius. **SVARBU** naudoti tos pačios kalbos automatizacijas, korteles ir helper'ius - Visi komponentai turi būti arba tik angliški arba tik lietuviški.
-   - YAML naudotojams: įtraukite `helpers/lt/helpers_lt.yaml` **arba** `helpers/en/helpers_en.yaml` į `configuration.yaml`.
-   - Jei helperius kūrėte per UI, tai šiuos failus naudokite kaip pavyzdį pavadinimams/ikonėlėms. Nepamirškite patikrinti ar susikūrė tiksliai toks Entity ID.
-
-2. **Automatikos**  
-   - Automatizacijų failai pritaikyti copy/paste į naują UI automatizacijos skriptą:
-Sukurti naują automatizaciją - Settings->Automations&Scenes->+Create automation->pasirenkama "Create new automation"->dešiniame viršutiniame kampe paspausti ant 3 taškų->pasirinkti "Edit in YAML"-> atsidariusiame lange išvalyti, kad neliktų jokio įrašo ir įklijuoti pasirnkto automatizacijos .yaml failo turinį ->Save.
-Taip pat .yaml turinį galite įdėti tiesiai į `config/automations/` (reikės pakoreguoti skripto sintaksę) ir **perkraukite automatikas**.
 
 ## Automatikų paaiškinimai
 **Akumuliatorių įkrovimas nuo saulės – dienos logika**
@@ -75,8 +59,7 @@ Kaip tai veikia:
  Padariau rankinį laiko pasirinkimą, nes nesugalvojau, kaip tą galima būtų automatizuoti, įvertinant metų laikus (kada pradeda saulė leisti), kitus galimus faktorius.
 
 Atsisiųsti kortelę - [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt_generation_forecasts.yaml) 
-     
-Atsisiųsti automatizacijos skriptą - [Akumuliatorių krovimo nuo saulės skriptas](automations/lt/lt_solar_daytime_charging.yaml) 
+
 
 **Elektros planiniai atjungimai (ESO planiniai darbai)**
 
@@ -100,10 +83,6 @@ Kaip tai veikia:
    - Prasideda baterijų krovimas iš tinklo. Pasiekus akumuliatorių 100% įkrovą, išjungiamas inverteryje `switch.grid_time_of_use_charging_period_1`, tačiau baterijos rezervavimas lieka įjungtas ir rezervas nustatytas 100%. Tokiu būdu ryte akumuliatoriai bus pilnai įkrauti, o automatizacija lauks kol dings įtampa bent vienoje į įvadinių fazių arba ateis laikas, kuris kalendoriuje pažymėtas, kaip darbų pabaiga. Išpildžius bent vieną iš sąlygų, automatizacija grąžins visus inverterio nustatymus į pradinę būseną, Home Assistant vėl pradės veikti "Žiemos režimas" (aprašytas žemiau), jei jis buvo įjungtas.
 
 Atsisiųsti kortelę - [ESO planiniai darbai kortelė](cards/lt/lt_grid_planned_outages.yaml) 
-     
-Atsisiųsti automatizacijos skriptą - [ESO planiniai darbai skriptas](automations/lt/lt_grid_planned_outage_prep_restore.yaml) 
-
-Atsisiųsti įvykio kalendoriuje sukūrimo skriptą - [ESO įvykio sukūrimo skriptas](automations/lt/lt_grid_create_event_from_card.yaml) 
 
 **Žiemos režimas**  
 
@@ -116,8 +95,6 @@ Ką daro ši automatizacija:
    - Ši automatizacija turi dar vieną saugiklį - jos vykdymas nutraukiamas, jeigu įjungiamas `input_boolean.akumuliatoriu_rankinis_rezervavimas`. Šį jungiklį junginėja kitos su akumuliatorių krovimu susijusios automatizacijos, kad įgautų prioritetą.
 
 Atsisiųsti kortelę - [Žiemos režimo kortelė](cards/lt/lt_winter_mode_reserves.yaml) 
-     
-Atsisiųsti automatizacijos skriptą - [Žiemos režimo skriptas](automations/lt/lt_winter_mode_reserve.yaml) 
 
 
 **Akumuliatorių profilaktinis įkrovimas**
@@ -134,13 +111,8 @@ Mano inverteryje nustatyta taip:
      SOC2 - 100%
 
 Atsisiųsti kortelę - [Akumuliatorių profilaktinio krovimo kortelė](cards/lt/lt_preventive_battery_charging.yaml) 
-     
-Atsisiųsti automatizacijos skriptą - [Akumuliatorių profilaktinio krovimo skriptas](automations/lt/lt_solar_periodic_charging.yaml) 
 
 ## Pabaigai
-
-Esu dar jaunas naudotojas hibridinės sistemos, todėl tikrai yra dar ką tobulinti ir galimai ne viską įvertinau. Todėl pastabos, komentarai priimami ir, kiek leis laikas ir galimybės bandysiu tobulinti šias automatizacijas.
-
 
 Jeigu patiko mano darbas, visada galite tai įvertinti 
 
