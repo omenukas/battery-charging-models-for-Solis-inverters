@@ -55,10 +55,17 @@ Iš šios integracijos bus naudojama pora sensorių einamos dienos prognozuojama
 Paskirtis - įvertinti ar numatoma pakankama elektos gamyba iš saulės ir pagal tai suplanuoti, kada bus kraunamos baterijos, kad nakčiai jos būtų pilnai įkrautos.
 Kaip tai veikia:
 - žinodami savo dienos elektros poreikį ir baterijų talpą, galite numatyti, koks reikalingas energijos kiekis, kad dienos metu būtų patenkinami momentinio elektros suvartojimo poreikiai ir, kad įkrauti iki 100% baterijas. Ši reikšmė įrašoma kortelėje į `Reakcija į gamybos prognozę`. Jeigu prognozė yra mažesnė, nei jūsų užduota, tai inverteris visą dieną dirbs "Self use" režimu, taip suteikdamas pirmenybę baterijų įkrovimui.
-- Tuo atveju, jeigu prognozuojama gamyba yra didesnė, nei jūsų užduota, tikrinama ar numatomas generacijos pikas yra didesnis, nei jūsų užduotas `Reakcija į max generaciją`. Jeigu prognozė didesnė, nei jūsų užduota - inverteris persijungia į "Selling first" režimą, taip suteikdamas pirmenybę atiduoti pagamintą elektros energiją į tinklą. Jeigu ši prognozė yra mažesnė, nei jūsų užduota reikšmė, tai tikrinama ar baterijose yra pakankamas likutis (nustatytas baterijos backup rezervas + 10%)ir , jeigu jis nepakankamas, tai inverteris lieka dirbti "Self use" režimu, kol pasieks pakankamą įkrovą. Jeigu įkrova yra pakankama ir laikas yra iki vidurdienio, tai inverteris perjungiamas į "Selling first" režimą.
+- Tuo atveju, jeigu prognozuojama gamyba yra didesnė, nei jūsų užduota, tikrinama ar numatomas generacijos pikas yra didesnis, nei jūsų užduotas `Reakcija į max generaciją`. Jeigu prognozė didesnė, nei jūsų užduota - inverteris persijungia į "Selling first" režimą, taip suteikdamas pirmenybę atiduoti pagamintą elektros energiją į tinklą. Jeigu ši prognozė yra mažesnė, nei jūsų užduota reikšmė, tai tikrinama ar baterijose yra pakankamas likutis (50%)ir , jeigu jis nepakankamas, tai inverteris lieka dirbti "Self use" režimu, kol pasieks pakankamą įkrovą. Jeigu įkrova yra pakankama ir laikas yra iki vidurdienio, tai inverteris perjungiamas į "Selling first" režimą.
 - Kodėl tokia logika: Elektros tinklai nustato leidžiamą generuoti į tinklą galią, ir ją pasiekus, reikia riboti arba gamybą arba perteklių atiduoti baterijų įkrovimui. Todėl į lauką `Reakcija į max generaciją` patartina įrašyti šiek tiek mažesnę reikšmę, nei jums ESO išdavė sąlygose leistiną generuoti (dėl prognozių paklaidos) ir pradžioje baterijos nebus kraunamos, kad jeigu vis viršijama leistina gamybą, tai tą perviršį panaudos baterijų įkrovimui. 
 - `Reakcija į laiką` - įrašote laiką, kada akumuliatoriai turi būti jau pilnai įkrauti. Jeigu inverteris dirbs "Selling first" režimu, tai bus perjungtas į "Self use", kad pilnai įkrauti baterijas, jei iki to laiko dar nebuvo tai padaryta.
  Padariau rankinį laiko pasirinkimą, nes nesugalvojau, kaip tą galima būtų automatizuoti, įvertinant metų laikus (kada pradeda saulė leisti), kitus galimus faktorius.
+
+> [!IMPORTANT]
+> **PASTABA:**
+> - Šis skriptas nuo 06:00 iki 13:00 kas 60 minučių tikrina Solarcast prognozes ir pagal tai, jeigu reikia, pakoreguoja scenarijaus veikimo principą;
+> - Ryte, nepriklausomai nuo prognozės visada pirmiau leidžia baterijai įsikrauti iki 50%;
+> - 13:00 scriptas paskutinį kartą atnaujina prognozę ir daugiau tą dieną nekoreguoja scripto;
+> - reakcija į laiką niekada nenustatinėkite 13:00 ar anksčiau, nes tokiu atveju 13:00 bus pakeista pagal paskutinę prognozę.
 
 Atsisiųsti kortelę - [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt_generation_forecasts.yaml) 
 
@@ -114,6 +121,21 @@ Mano inverteryje nustatyta taip:
 
 Atsisiųsti kortelę - [Akumuliatorių profilaktinio krovimo kortelė](cards/lt/lt_preventive_battery_charging.yaml) 
 
+
+**Akumuliatorių įkrovimas, kai baigiasi ESO pasaugoti atiduotos kWh**
+
+![Preventive charging](docs/img/preventive_charging.jpg)
+
+Kadangi žiemą akumuliatoriai nuo saulės turi mažai šansų įsikrauti iki 100% ir ilgesniam laiko periodui tai turi įtaką pačių baterijų degradacijai, tai ši automatizacija pasirūpina, kad kartais baterijos būtų pilnai ikraunamos.
+Ši automatizacija veikia tik tada, kai yra įjungtas "Žiemos režimas" 
+Kortelėje galite nustatyti profilaktinio įkrovimo periodiškumą ir laiką, kada prasidės priverstinis krovimas iš tinklo.
+Ši automatizacija inverteryje įjungia `switch.grid_time_of_use_charging_period_2`- priverstinį baterijų krovimą iš tinklo. Šį TOU inverteryje reikėtų turėti iš anksto pasiruoštą. Jeigu jis jau naudojamas kitur, tai pasirinkti kitą laisvą ir nepamiršti padaryti pataisymus automatizacijose.
+Mano inverteryje nustatyta taip:
+     Charge Time Slot 2 - 00:00-00:00;
+     Charge Current 2 - 20A
+     SOC2 - 100%
+
+Atsisiųsti kortelę - [Akumuliatorių profilaktinio krovimo kortelė](cards/lt/lt_preventive_battery_charging.yaml) 
 ## Pabaigai
 
 Jeigu patiko mano darbas, visada galite tai įvertinti 
