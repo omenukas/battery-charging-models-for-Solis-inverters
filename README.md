@@ -124,7 +124,7 @@ Atsisiųsti kortelę - [Akumuliatorių profilaktinio krovimo kortelė](cards/lt/
 
 **Akumuliatorių įkrovimas, kai baigiasi ESO pasaugoti atiduotos kWh**
 
-![Preventive charging](docs/img/preventive_charging.jpg)
+![Preventive charging](docs/img/lt_eso_balance_card.jpg)
 
 Kadangi žiemą akumuliatoriai nuo saulės turi mažai šansų įsikrauti iki 100% ir ilgesniam laiko periodui tai turi įtaką pačių baterijų degradacijai, tai ši automatizacija pasirūpina, kad kartais baterijos būtų pilnai ikraunamos.
 Ši automatizacija veikia tik tada, kai yra įjungtas "Žiemos režimas" 
