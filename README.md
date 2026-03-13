@@ -159,7 +159,7 @@ Jeigu patiko mano darbas, visada galite tai įvertinti
 </div>
 
 <p align="center">
-  <a href="https://github.com/omenukas/battery-charging-models-for-Solis-inverters/blob/main/README.lt.md"
+  <a href="https://github.com/omenukas/battery-charging-models-for-Solis-inverters/blob/main/README.md"
      style="display:inline-block;padding:10px 16px;border:1px solid #0366d6;border-radius:6px;text-decoration:none;">
     Eiti į GitHub repo →
   </a>
