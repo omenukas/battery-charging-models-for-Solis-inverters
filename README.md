@@ -8,7 +8,7 @@
 
 [Svetainė](https://omenukas.github.io/battery-charging-models-for-Solis-inverters/)
 
-**ATNAUJINTA (2025-12-28)**. Visi reikalingi sensoriai ir automatizacijos sudėtos į du packages yaml failus. 
+**ATNAUJINTA (2026-03-13)**. Visi reikalingi sensoriai ir automatizacijos sudėtos į du packages yaml failus. 
 Atsisiųskite [03_charging_vasara_ziema.yaml](packages/03_charging_vasara_ziema.yaml) ir [01_charging_eso.yaml](packages/01_charging_eso.yaml), įdėkite šiuos failus į aplanką `config/packages/`.
 `configuration.yaml`, jeigu dar neturite, įrašykite:
 ```
