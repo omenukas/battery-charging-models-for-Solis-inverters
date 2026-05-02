@@ -20,6 +20,8 @@
 #         (perteklinė elektra parduodama į tinklą)
 #       - Apsauga ryte: jei SOC < 50%, pirma pakrauname bateriją iki 50%,
 #         tuomet grįžtame prie prognozės logikos
+#       - Pasiekus 90% SOC bet kada dienos metu → Feed-in priority,
+#         nebent charging_full_charge_allowed = ON (leidžiama krauti iki 100%)
 #       - Apsauga vakare: nustatytu laiku (reakcija_i_laika), jei SOC < 100%,
 #         perjungiama į Self use, kad baterija būtų pakrauta iki nakties
 #
@@ -29,9 +31,9 @@
 #     • akumuliatoriu_rankinis_rezervavimas – blokuoti automatinį rezervo keitimą
 #     • reserve_battery_mode_before_winter  – išsaugoti Reserve Battery Mode būseną
 #     • reserve_battery_mode_before_outage  – išsaugoti Reserve Battery Mode būseną
+#     • charging_full_charge_allowed     – leisti krauti iki 100% (celių balansavimui)
 #   input_number:
 #     • reakcija_i_gamybos_prognoze      – Solcast prognozės riba kWh (pvz. 10)
-#     • reakcija_i_dienos_max_generacija – maksimalios generacijos riba W (rezervinis)
 #     • solis_krovimo2_dienu_intervalas  – kas kiek dienų vykdyti periodinį krovimą
 #     • akumuliatoriaus_rezervavimas     – žiemos backup SOC %
 #     • akumuliatoriaus_rezervavimas_vasarai – aktyvus vasaros backup SOC %
@@ -82,6 +84,14 @@ input_boolean:
     name: "Charging3 - Solis Reserve Battery Mode – prieš ESO atjungimą"
     icon: mdi:battery-lock
 
+  # Leidžia bateriją krauti iki 100% (celių balansavimui).
+  # ON  = 90% riba ignoruojama, baterija kraunama iki 100%
+  # OFF = įprastas vasaros režimas: pasiekus 90% → Feed-in priority
+  # Valdomas rankiniu būdu – įjungiamas ir išjungiamas paties vartotojo.
+  charging_full_charge_allowed:
+    name: "Charging3 - Leisti krauti iki 100%"
+    icon: mdi:battery-charging-100
+
 input_number:
   # Solcast dienos prognozės slenkstis kWh.
   # Jei prognozė >= šios reikšmės → Feed-in priority (parduodama į tinklą).
@@ -94,17 +104,6 @@ input_number:
     unit_of_measurement: kWh
     icon: mdi:weather-sunny-alert
     mode: box
-
-  # Rezervinis parametras maksimaliai dienos generacijai W.
-  # Šiuo metu nenaudojamas aktyviai – paliktas ateičiai.
-  reakcija_i_dienos_max_generacija:
-    name: "Charging3 - Solis reakcija į dienos max generaciją"
-    min: 0
-    max: 30000
-    step: 1
-    unit_of_measurement: W
-    mode: box
-    icon: mdi:weather-sunny
 
   # Kas kiek dienų vykdyti periodinį žiemos krovimą iki 100%.
   # Rekomenduojama 14–30 dienų baterijos sveikatai palaikyti.
@@ -199,9 +198,14 @@ automation:
   # TRIGERIAI:
   #   • Kas valandą nuo 06:00 iki 13:00 (id: hourly)
   #   • Kai SOC pakyla virš 50% dienos metu (id: soc_50_reached)
+  #   • Kai SOC pakyla virš 90% (id: soc_90_reached)
   #   • Nustatytu vakaro laiku reakcija_i_laika (id: time_cutoff)
   #
   # SPRENDIMO MEDIS:
+  #   0. soc_90_reached suveikia + charging_full_charge_allowed = OFF
+  #      → Feed-in priority (90% riba pasiekta, paliekame 10% saulei)
+  #      (jei charging_full_charge_allowed = ON – ignoruojama, krauname iki 100%)
+  #
   #   1. time_cutoff suveikia + SOC < 100%
   #      → Self use (baterija turi įsikrauti prieš naktį)
   #
@@ -253,20 +257,38 @@ automation:
         entity_id: sensor.solis_s6_eh3p_battery_soc
         above: 50
         id: soc_50_reached
+      # Kai SOC pakyla virš 90% – perjungiame į Feed-in priority
+      # (nebent charging_full_charge_allowed = ON)
+      - trigger: numeric_state
+        entity_id: sensor.solis_s6_eh3p_battery_soc
+        above: 90
+        id: soc_90_reached
     conditions:
       - condition: state
         entity_id: input_boolean.ziemos_rezimas_elektrinei
         state: "off"
-      # soc_50_reached trigeris aktualus tik dienos metu (06–13h)
+      # soc_50_reached ir soc_90_reached trigeriai aktualūs tik dienos metu (06–13h)
       - condition: template
         value_template: >-
-          {{ trigger.id != 'soc_50_reached' or (now().hour >= 6 and now().hour <= 13) }}
+          {{ trigger.id not in ['soc_50_reached', 'soc_90_reached'] or (now().hour >= 6 and now().hour <= 13) }}
     variables:
       prognose: "{{ states('sensor.solcast_pv_forecast_forecast_today') | float(0) }}"
       prognozos_riba: "{{ states('input_number.reakcija_i_gamybos_prognoze') | float(0) }}"
       soc: "{{ states('sensor.solis_s6_eh3p_battery_soc') | float(0) }}"
     actions:
       - choose:
+          # SOC pasiekė 90% → Feed-in priority, jei leidžiama (charging_full_charge_allowed = OFF)
+          - conditions:
+              - condition: trigger
+                id: soc_90_reached
+              - condition: state
+                entity_id: input_boolean.charging_full_charge_allowed
+                state: "off"
+            sequence:
+              - action: switch.turn_on
+                target:
+                  entity_id: switch.feed_in_priority_mode
+
           # Nustatytu laiku: jei baterija nepilna -> Self use
           - conditions:
               - condition: trigger
