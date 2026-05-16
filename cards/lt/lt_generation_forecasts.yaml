@@ -1,0 +1,17 @@
+type: vertical-stack
+cards:
+  - type: entities
+    entities:
+      - entity: input_boolean.charging_full_charge_allowed
+        name: Leisti krauti iki 100%
+      - entity: sensor.solcast_pv_forecast_forecast_today
+        name: Prognozuojama šiandien gamyba
+      - entity: input_number.reakcija_i_gamybos_prognoze
+        name: Reakcija į gamybos prognozę
+      - entity: sensor.solcast_pv_forecast_peak_forecast_today
+        name: Pognozuojama pikinė generacija
+      - entity: input_datetime.reakcija_i_laika
+        name: Reakcija į laiką
+      - entity: input_number.palaikomas_rezervas
+        name: Rytinė reikalinga įkrova
+title: Gamybos prognozės

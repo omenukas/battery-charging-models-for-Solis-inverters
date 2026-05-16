@@ -1,0 +1,21 @@
+type: horizontal-stack
+cards:
+  - type: entities
+    entities:
+      - entity: input_boolean.charging_discharge_scenario_enabled
+        name: Vykdyti tinklų balansavimo režimą
+      - entity: switch.grid_time_of_use_discharge_period_1
+        name: Kaupiklio iškrovimo aktyvavimas
+      - entity: number.solis_s6_eh3p_grid_time_of_use_discharge_cut_off_soc_slot_1_2
+        name: Iki kiek iškrauti kaupiklį
+      - entity: >-
+          number.solis_s6_eh3p_grid_time_of_use_discharge_battery_current_slot_1_2
+        name: Kaupiklio iškrovimo srovė
+      - entity: time.solis_s6_eh3p_grid_time_of_use_discharge_start_slot_1
+        name: Brangiausių valandų pradžia
+      - entity: time.solis_s6_eh3p_grid_time_of_use_discharge_end_slot_1
+        name: Brangiausių valandų pabaiga
+      - entity: input_datetime.charging4_cheap_window_start
+        name: Pigiausių valandų pradžia
+      - entity: input_datetime.charging4_cheap_window_end
+        name: Pigiausių valandų pabaiga
