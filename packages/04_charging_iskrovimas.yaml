@@ -1,0 +1,242 @@
+###############################################################################
+# PACKAGE: 04_charging_iskrovimas
+###############################################################################
+
+automation:
+  - alias: "Charging4 – ryto iškrovimo scenarijus"
+    id: charging4_morning_discharge_scenario
+    triggers:
+      - trigger: event
+        event_type: charging4_start_discharge_scenario
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ziemos_rezimas_elektrinei
+        state: "off"
+      - condition: state
+        entity_id: input_boolean.charging_discharge_scenario_enabled
+        state: "on"
+      - condition: template
+        value_template: >-
+          {{ states('sensor.solcast_pv_forecast_forecast_today') | float(0)
+             >= states('input_number.reakcija_i_gamybos_prognoze') | float(0) }}
+
+    variables:
+      discharge_window: >-
+        {%- set prices = state_attr('sensor.electricity_prices', 'data') %}
+        {%- if prices is none or prices | length == 0 %}
+          {{ {'start': '06:30', 'end': '09:30', 'found': false} }}
+        {%- else %}
+          {%- set cutoff_str = states('input_datetime.reakcija_i_laika') %}
+          {%- set cutoff_h = cutoff_str.split(':')[0] | int %}
+          {%- set cutoff_m = cutoff_str.split(':')[1] | int %}
+          {%- set cutoff_mins = cutoff_h * 60 + cutoff_m %}
+          {%- set ns = namespace(slots=[]) %}
+          {%- for item in prices %}
+            {%- set dt_local = as_local(as_datetime(item.start)) %}
+            {%- set h = dt_local.hour %}
+            {%- set m = dt_local.minute %}
+            {%- set slot_mins = h * 60 + m %}
+            {%- if slot_mins >= 300 and slot_mins < cutoff_mins and m in [0, 30] %}
+              {%- set idx = loop.index0 %}
+              {%- set p1 = item.price | float(0) %}
+              {%- set p2 = prices[idx + 1].price | float(0) if idx + 1 < prices | length else p1 %}
+              {%- set ns.slots = ns.slots + [{'label': '%02d:%02d' % (h, m), 'price': (p1 + p2) / 2, 'mins': slot_mins}] %}
+            {%- endif %}
+          {%- endfor %}
+          {%- set n = ns.slots | length %}
+          {%- set best = namespace(sum=-1, idx=0) %}
+          {%- for i in range([n - 5, 1] | max) %}
+            {%- if i + 5 < n %}
+              {%- set ws = ns.slots[i].price + ns.slots[i+1].price + ns.slots[i+2].price
+                           + ns.slots[i+3].price + ns.slots[i+4].price + ns.slots[i+5].price %}
+              {%- if ws > best.sum %}
+                {%- set best.sum = ws %}
+                {%- set best.idx = i %}
+              {%- endif %}
+            {%- endif %}
+          {%- endfor %}
+          {%- if n >= 6 %}
+            {%- set s = ns.slots[best.idx] %}
+            {%- set e_mins = ns.slots[best.idx + 5].mins + 30 %}
+            {{ {'start': s.label, 'end': '%02d:%02d' % (e_mins // 60, e_mins % 60), 'found': true} }}
+          {%- else %}
+            {{ {'start': '06:30', 'end': '09:30', 'found': false} }}
+          {%- endif %}
+        {%- endif %}
+
+    actions:
+      ###################################################################
+      # 1. NUSTATOMOS IŠKROVIMO PRADŽIOS IR PABAIGOS REIKŠMĖS
+      ###################################################################
+      - action: time.set_value
+        target:
+          entity_id: time.solis_s6_eh3p_grid_time_of_use_discharge_start_slot_1
+        data:
+          time: "{{ discharge_window.start }}:00"
+
+      - action: time.set_value
+        target:
+          entity_id: time.solis_s6_eh3p_grid_time_of_use_discharge_end_slot_1
+        data:
+          time: "{{ discharge_window.end }}:00"
+
+      - delay:
+          seconds: 10
+
+      ###################################################################
+      # 2. ĮJUNGIAMAS IŠKROVIMAS
+      ###################################################################
+      - action: switch.turn_on
+        target:
+          entity_id: switch.grid_time_of_use_discharge_period_1
+
+      ###################################################################
+      # 3. LAUKIAME KOL IŠKROVIMAS BAIGIASI
+      ###################################################################
+      - wait_template: >-
+          {%- set soc = states('sensor.solis_s6_eh3p_battery_soc') | float(0) %}
+          {%- set cutoff_soc = states('number.solis_s6_eh3p_grid_time_of_use_discharge_cut_off_soc_slot_1_2') | float(30) %}
+          {%- set end_h = discharge_window.end.split(':')[0] | int %}
+          {%- set end_m = discharge_window.end.split(':')[1] | int %}
+          {{ soc <= cutoff_soc or (now().hour > end_h or (now().hour == end_h and now().minute >= end_m)) }}
+        timeout: "06:00:00"
+        continue_on_timeout: true
+
+      ###################################################################
+      # 4. IŠJUNGIAMAS IŠKROVIMAS
+      ###################################################################
+      - action: switch.turn_off
+        target:
+          entity_id: switch.grid_time_of_use_discharge_period_1
+
+      ###################################################################
+      # 5. ĮJUNGIAMAS FEED-IN PRIORITY
+      ###################################################################
+      - action: switch.turn_on
+        target:
+          entity_id: switch.feed_in_priority_mode
+
+      ###################################################################
+      # 6. RANDAMOS PIGIAUSIOS 2 PAEILIUI VALANDOS
+      ###################################################################
+      - variables:
+          cheap_window: >-
+            {%- set prices = state_attr('sensor.electricity_prices', 'data') %}
+            {%- if prices is none or prices | length == 0 %}
+              {{ {'start': '11:00', 'end': '13:00', 'found': false} }}
+            {%- else %}
+              {%- set cutoff_str = states('input_datetime.reakcija_i_laika') %}
+              {%- set cutoff_h = cutoff_str.split(':')[0] | int %}
+              {%- set cutoff_m = cutoff_str.split(':')[1] | int %}
+              {%- set cutoff_mins = cutoff_h * 60 + cutoff_m %}
+              {%- set now_mins = now().hour * 60 + now().minute %}
+              {%- set ns = namespace(slots=[]) %}
+              {%- for item in prices %}
+                {%- set dt_local = as_local(as_datetime(item.start)) %}
+                {%- set h = dt_local.hour %}
+                {%- set m = dt_local.minute %}
+                {%- set slot_mins = h * 60 + m %}
+                {%- if slot_mins >= now_mins and slot_mins < cutoff_mins and m in [0, 30] %}
+                  {%- set idx = loop.index0 %}
+                  {%- set p1 = item.price | float(0) %}
+                  {%- set p2 = prices[idx + 1].price | float(0) if idx + 1 < prices | length else p1 %}
+                  {%- set ns.slots = ns.slots + [{'label': '%02d:%02d' % (h, m), 'price': (p1 + p2) / 2, 'mins': slot_mins}] %}
+                {%- endif %}
+              {%- endfor %}
+              {%- set n = ns.slots | length %}
+              {%- set best = namespace(sum=99999, idx=0) %}
+              {%- for i in range([n - 3, 1] | max) %}
+                {%- if i + 3 < n %}
+                  {%- set ws = ns.slots[i].price + ns.slots[i+1].price
+                               + ns.slots[i+2].price + ns.slots[i+3].price %}
+                  {%- if ws < best.sum %}
+                    {%- set best.sum = ws %}
+                    {%- set best.idx = i %}
+                  {%- endif %}
+                {%- endif %}
+              {%- endfor %}
+              {%- if n >= 4 %}
+                {%- set s = ns.slots[best.idx] %}
+                {%- set e_mins = ns.slots[best.idx + 3].mins + 30 %}
+                {{ {'start': s.label, 'end': '%02d:%02d' % (e_mins // 60, e_mins % 60), 'found': true} }}
+              {%- else %}
+                {{ {'start': '11:00', 'end': '13:00', 'found': false} }}
+              {%- endif %}
+            {%- endif %}
+
+      ###################################################################
+      # 6b. ĮRAŠOME PIGIAUSIŲ VALANDŲ LAIKĄ Į HELPERIUS (kortelei)
+      ###################################################################
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.charging4_cheap_window_start
+        data:
+          time: "{{ cheap_window.start }}:00"
+
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.charging4_cheap_window_end
+        data:
+          time: "{{ cheap_window.end }}:00"
+
+      ###################################################################
+      # 7. LAUKIAME IKI PIGIAUSIŲ VALANDŲ PRADŽIOS
+      ###################################################################
+      - wait_template: >-
+          {%- set sh = cheap_window.start.split(':')[0] | int %}
+          {%- set sm = cheap_window.start.split(':')[1] | int %}
+          {{ now().hour > sh or (now().hour == sh and now().minute >= sm) }}
+        timeout: "06:00:00"
+        continue_on_timeout: true
+
+      ###################################################################
+      # 8. SELF USE – pigiausios 2 valandos
+      ###################################################################
+      - action: switch.turn_off
+        target:
+          entity_id: switch.feed_in_priority_mode
+
+      - delay:
+          hours: 2
+
+      ###################################################################
+      # 9. FEED-IN PRIORITY – laukiame reakcija_i_laika
+      ###################################################################
+      - action: switch.turn_on
+        target:
+          entity_id: switch.feed_in_priority_mode
+
+      - wait_template: >-
+          {%- set rt = states('input_datetime.reakcija_i_laika') %}
+          {%- set rt_h = rt.split(':')[0] | int %}
+          {%- set rt_m = rt.split(':')[1] | int %}
+          {{ now().hour > rt_h or (now().hour == rt_h and now().minute >= rt_m) }}
+        timeout: "08:00:00"
+        continue_on_timeout: true
+
+      ###################################################################
+      # 10. VAKARO LOGIKA
+      ###################################################################
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.charging_full_charge_allowed
+                state: "off"
+              - condition: template
+                value_template: >-
+                  {{ states('sensor.solis_s6_eh3p_battery_soc') | float(0) >= 90 }}
+            sequence:
+              - action: switch.turn_on
+                target:
+                  entity_id: switch.feed_in_priority_mode
+        default:
+          - if:
+              - condition: template
+                value_template: >-
+                  {{ states('sensor.solis_s6_eh3p_battery_soc') | float(0) < 100 }}
+            then:
+              - action: switch.turn_off
+                target:
+                  entity_id: switch.feed_in_priority_mode
+
+    mode: single
