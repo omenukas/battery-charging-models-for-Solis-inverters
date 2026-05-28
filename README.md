@@ -73,7 +73,7 @@ Atsisiųsti kortelę - [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt
 
 **Kaupiklio iškrovimas/įkrovimas pagal NordPool**
 
-![Grid balancing](docs/img/grid_balancing.jpg)
+![Grid balancing](docs/img/balancing_card.PNG)
 
 Bent jau mano praktikoje, kai elektros tinklai numato elektros atjungimus, tai jie beveik visada būna nuo ryto, kai akumuliatoriai būna išsikrovę po nakties, bet saulės elektrinė dar tik pradeda gamybą. Todėl, gavus iš elektros tinklų pranešimą apie numatomą elektros atjungimą, galima iš anksto pasirūpinti, kad tą dieną, kai bus atjungiama elektra, akumuliatoriai būtų pilnai įkrauti. 
 
