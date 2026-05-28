@@ -8,7 +8,7 @@
 
 [Svetainė](https://omenukas.github.io/battery-charging-models-for-Solis-inverters/)
 
-**ATNAUJINTA (2026-05-16) (BETA)**. Pridėta papildoma automatizacija baterijų iškrovimui brangiausiomis rytinėmis valandomis ir įkrovimas pigiausiomis valandomis pagal NordPool Kadangi dar BETA versija, tai aprašymai bus papildyti vėliau. Home Assistant reikia atnaujinti [03_charging_vasara_ziema.yaml](packages/03_charging_vasara_ziema.yaml) ir [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt_generation_forecasts.yaml). Taip pat į packages direktoriją įdėti naują [04_charging_iskrovimas.yaml](packages/04_charging_iskrovimas.yaml) bei reikalinga nauja kortelė [Tinklo balansavimo kortelė](cards/lt/lt_grid_balancing_card.yaml).
+**ATNAUJINTA (2026-05-28)**. Pridėta papildoma automatizacija baterijų iškrovimui brangiausiomis rytinėmis valandomis ir įkrovimas pigiausiomis valandomis pagal NordPool. Home Assistant reikia atnaujinti [03_charging_vasara_ziema.yaml](packages/03_charging_vasara_ziema.yaml) ir [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt_generation_forecasts.yaml). Taip pat į packages direktoriją įdėti naują [04_charging_iskrovimas.yaml](packages/04_charging_iskrovimas.yaml) bei reikalinga nauja kortelė [Tinklo balansavimo kortelė](cards/lt/lt_grid_balancing_card.yaml).
 Šiai versijai reikalinga Home Assistant įdiegti [NordPool](https://www.home-assistant.io/integrations/nordpool/) integraciją.
 
 **ATNAUJINTA (2026-05-02)**. Pakeista baterijos krovimo logika vasaros režimu. Taip pat pakoreguota akumuliatorių krovimo, kai baigiasi ESO sukauptos kWh, automatizacija.
@@ -61,22 +61,21 @@ Iš šios integracijos bus naudojama pora sensorių einamos dienos prognozuojama
 Paskirtis - įvertinti ar numatoma pakankama elektos gamyba iš saulės ir pagal tai suplanuoti, kada bus kraunamos baterijos, kad nakčiai jos būtų pilnai įkrautos.
 Kaip tai veikia:
 - žinodami savo dienos elektros poreikį ir baterijų talpą, galite numatyti, koks reikalingas energijos kiekis, kad dienos metu būtų patenkinami momentinio elektros suvartojimo poreikiai ir, kad įkrauti iki 100% baterijas. Ši reikšmė įrašoma kortelėje į `Reakcija į gamybos prognozę`. Jeigu prognozė yra mažesnė, nei jūsų užduota, tai inverteris visą dieną dirbs "Self use" režimu, taip suteikdamas pirmenybę baterijų įkrovimui.
-- Ryte pradžioje tikrinama ar baterijos įkrautos ne mažiau 50%. Jeigu mažiau - inverteryje nustatomas "Self Use" režimas, kol baterijos įkrovos lygis pasieks 50%. Tada pradedama tikrinti prognozė, kurios duomenis atnaujina kas valandą ir pagal tai koreguoja inverterio režimą, jeigu pasikeičia prognozę lyginant su praeitos valandos. Jeigu prognozė didesnė, nei užduota, tai inverteris perjungiamas į "Feed In Priority" režimą.
-- 2026-06-02 automatizacija pakeista taip, kad standartiškai baterija būtų įkraunama iki 90% (baterijų saugojimo tikslais) ir kiekvieno mėnesio 15d. aktyvuojamas baterijos krovimas iki 100%. Po trijų dienų vėl grįžtama prie 90% įkrovos režimo. Tai padaryta tam, kad kartą į mėnesį baterijų celės galėtų susikalibruoti. Todėl dienos metu iki laiko, kuris nustatytas kortelėje "Reakcija į Laiką", nesvarbu kokios prognozės ir kokiu režimu dirba inverteris, kai tik pasiekiama 90% baterijos įkrova, inverteris perjungiamas į "Feed In Priority" režimą, kad nebekrauti baterijų, o visą pagamintą energiją atiduoti į tinklus. Jeigu gamyba viršys leistiną atiduoti į tinklus, tai perviršį atiduos į baterijas.
-- Atėjus laikui, nustatytam "Reakcija į laiką", patikrinama ar baterija yra pasiekusi 90% įkrovą. Jeigu įkrova mažesnė, tai inverteris perjungiamas į "Self Use" režimą, kol pasieks 90% įkrovą. Jeigu buvo pasiekta 90%, tai inverteris perjungimas į "Feed In Priority" ir daugiau nieko nekeičiama iki kitos dienos.
+- Kortelėje `Gamybos prognozė` įrašome kokia yra `Kaupiklio talpa`, kokia reikalinga minimali kaupiklio įkrova `Reikalinga rytinė įkrova`
+- Taip pat galima įrašyti `Papildoma namų vartojimo rezervacija`. Reikšmę paaiškinsiu žemiau.
+- Ryte 5:00 pradžioje tikrinama ar baterijos įkrautos ne mažiau nei jūsų užduota minimali baterijos įkrova `Reikalinga rytinė įkrova`. Jeigu mažiau - inverteryje nustatomas "Self Use" režimas, kol baterijos įkrovos lygis pasieks numatytą reikšmę. Tada pradedama tikrinti prognozė, kurios duomenis atnaujina kas puse valandos ir pagal tai koreguoja inverterio režimą. Automatizacija mato kokia yra dabartinė baterijos įkrova ir, žinodama kaupiklio talpą, paskaičiuoja kiek kWh trūksta iki pilnos įkrovos. Šią reikšmę daugina iš 1.5 koeficiento, taip pridedant dar momentinį namo vartojimą (50% kaupiklio trūkstamų kWh). Taip pat pridedama reikšmė, įrašyta į `Papildoma namų vartojimo rezervacija`. Šią reikšmę įdėjau, jeigu pastebėsite, kad iki vakaro nespėja įkrauti pilnai kaupiklio, tai didinant šią reikšmę paankstinamas pilnas įkrovimas prieš generacijos pabaigą. Apibendrinant dienos kWh poreikis paskaičiuojamas - Trūkstamos kWh kaupikliui iki pilno įkrovimo + 50% tos kaupiklio talpos + `Papildoma namų vartojimo rezervacija`. Gautą reikšmę lygina su prognoze kiek dar liko šiandien gamybos ( `Liko prognazuojamos gamybos šiandien`). Jeigu prognozė didesnė, nei visas namo ir kaupiklio poreikis, tai inverteryje jungiamas "Feed In Priority" režimas. Jeigu prognozės ir poreikio reikšmės susivienodina, tai inverteris perjungiamas į "Self use" režimą.
+- Standartiškai baterija įkraunama iki 90% (baterijų saugojimo tikslais) ir kiekvieno mėnesio 15d. aktyvuojamas baterijos krovimas iki 100%. Po trijų dienų vėl grįžtama prie 90% įkrovos režimo. Tai padaryta tam, kad kartą į mėnesį baterijų celės galėtų susikalibruoti. Kai baterijos įkrova pasiekia 90%, tai nesvarbu kokia prognozė, inverteris persijungia į "Feed in priority"
 - Šios automatizacijos kortelėje įvestas papildomas jungiklis, kurį įjungus, visada bus kraunama iki 100%, o išjungus, bus kraunama iki 90% ir mėnesio 15 dieną trims paroms aktyvuojamas krovimas iki 100%.
-- Kodėl tokia logika: Elektros tinklai nustato leidžiamą generuoti į tinklą galią, ir ją pasiekus, reikia riboti arba gamybą arba perteklių atiduoti baterijų įkrovimui. Todėl į lauką `Reakcija į max generaciją` patartina įrašyti šiek tiek mažesnę reikšmę, nei jums ESO išdavė sąlygose leistiną generuoti (dėl prognozių paklaidos) ir pradžioje baterijos nebus kraunamos, kad jeigu vis viršijama leistina gamybą, tai tą perviršį panaudos baterijų įkrovimui. 
-- `Reakcija į laiką` - įrašote laiką, kada akumuliatoriai turi būti jau pilnai įkrauti. Jeigu inverteris dirbs "Feed In Priority" režimu, tai bus perjungtas į "Self use", kad pilnai įkrauti baterijas, jei iki to laiko dar nebuvo tai padaryta.
- Padariau rankinį laiko pasirinkimą, nes nesugalvojau, kaip tą galima būtų automatizuoti, įvertinant metų laikus (kada pradeda saulė leisti), kitus galimus faktorius.
-
-> [!IMPORTANT]
-> **PASTABA:**
-> - Šis skriptas nuo 06:00 iki laiko, užduoto "Reakcija į laiką", kas 60 minučių tikrina Solarcast prognozes ir pagal tai, jeigu reikia, pakoreguoja scenarijaus veikimo principą;
-> - Ryte, nepriklausomai nuo prognozės visada pirmiau leidžia baterijai įsikrauti iki 50%;
 
 
 Atsisiųsti kortelę - [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt_generation_forecasts.yaml) 
 
+
+**Kaupiklio iškrovimas/įkrovimas pagal NordPool**
+
+![Grid balancing](docs/img/grid_balancing.jpg)
+
+Bent jau mano praktikoje, kai elektros tinklai numato elektros atjungimus, tai jie beveik visada būna nuo ryto, kai akumuliatoriai būna išsikrovę po nakties, bet saulės elektrinė dar tik pradeda gamybą. Todėl, gavus iš elektros tinklų pranešimą apie numatomą elektros atjungimą, galima iš anksto pasirūpinti, kad tą dieną, kai bus atjungiama elektra, akumuliatoriai būtų pilnai įkrauti. 
 
 **Elektros planiniai atjungimai (ESO planiniai darbai)**
 
