@@ -75,7 +75,14 @@ Atsisiųsti kortelę - [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt
 
 ![Grid balancing](docs/img/balancing_card.PNG)
 
-Bent jau mano praktikoje, kai elektros tinklai numato elektros atjungimus, tai jie beveik visada būna nuo ryto, kai akumuliatoriai būna išsikrovę po nakties, bet saulės elektrinė dar tik pradeda gamybą. Todėl, gavus iš elektros tinklų pranešimą apie numatomą elektros atjungimą, galima iš anksto pasirūpinti, kad tą dieną, kai bus atjungiama elektra, akumuliatoriai būtų pilnai įkrauti. 
+
+5:00, kai pradedama vykdyti dienos logikos automatizacija, dar yra tikrinama ar įjungtas `Vykdyti balansavimo režimą` jungiklis. Jeigu jis yra įjungtas, tai pradedama vykdyti papildoma automatizacijos atšaka.
+Pagal NordPool tos dienos duomenis, ieško rytinių 3 brangiausių valandų. Atėjus tam laikui, įjungiamas baterijų iškrovimo į tinklą, režimas. Kortelėje galite nustatyti kokia srove bus vykdomas iškrovimas. Pasibaigus brangiausių valandų laikui arba baterijai pasiekus `iki kiek iškrauti kaupiklį` reikšmę, išjungiamas iškrovimo režimas ir ieškoma tos dienos pigiausiu dviejų valandų. Iki to laiko inverteris veikia "Feed in priority" režimu ir kas pusvalandį tikrina prognozes, kaip tai aprašyta dienos logikoje. Atėjus pigiausių valandų laikui, perjungiama į "Self use" režimą kol praeis tos 2 valandos arba bus pasiekta įkrova nustatyta kortelėje `Pigiausių valandų įkrova`. Tada grįžtama prie dienos logikos.
+Visa ši automatizacijos atšaka nevykdoma, jeigu dienos prognozė yra prasta.
+Taip pat ryte tikrinama kokia rytdienos gamybos prognozė. Jeigu prognozė yra dvigubai mažesnė nei užduota `Reakcija į gamybos prognozę`, tai automatiškai įjungiamas tai dienai kaupiklio krovimo iki 100% režimas.
+
+Atsisiųsti kortelę - [Balansavimo pagal NordPool kortelė](cards/lt/lt_grid_balancing_card.yaml) 
+
 
 **Elektros planiniai atjungimai (ESO planiniai darbai)**
 
