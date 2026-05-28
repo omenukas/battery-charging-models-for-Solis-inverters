@@ -1,0 +1,26 @@
+type: vertical-stack
+cards:
+  - type: entities
+    entities:
+      - entity: input_boolean.charging_full_charge_allowed
+        name: Leisti krauti iki 100% (90/100)
+      - entity: sensor.solcast_pv_forecast_forecast_today
+        name: Prognozuojama šiandien gamyba
+      - entity: input_number.reakcija_i_gamybos_prognoze
+        name: Reakcija į gamybos prognozę
+      - entity: sensor.solcast_pv_forecast_peak_forecast_today
+        name: Pognozuojama pikinė generacija
+      - entity: input_number.palaikomas_rezervas
+        name: Rytinė reikalinga įkrova
+      - entity: input_number.kaupiklio_talpa
+        name: Kaupiklio talpa
+      - entity: sensor.charging3_liko_ikrauti
+        name: Liko įkrauti (tik kaupiklis)
+      - entity: sensor.charging3_liko_ikrauti_su_namais
+        name: Liko įkrauti (su namų vartojimu)
+      - entity: sensor.solcast_pv_forecast_forecast_remaining_today
+        name: Liko prognazuojamos gamybos šiandien
+      - entity: input_number.vakaro_rezervas_kwh
+        name: Papildoma namų vartojimo rezervacija
+title: Gamybos prognozės
+
