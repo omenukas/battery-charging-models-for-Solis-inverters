@@ -65,6 +65,7 @@ Kortelės parametrų reikšmės:
 - `Liko įkrauti (su namų vartojimu)` - stebėjimui, kiek kWh trūksta, kad pilnai įkrauti kaupiklį ir namo poreikiams patenkinti.
 - `Liko prognazuojamos gamybos šiandien` - stebėjimui, kiek, pagal Solcast prognozę, dar bus šiandien pagaminta kWh.
 - `Papildoma namų vartojimo rezervacija` - jeigu namo vartojimas didesnis, nei rezervuota automatizacijoje, tai čia galima pridėti dar papildomą namo poreikį.
+
 Šiam scriptui reikalinga papildoma [Solcast_forecast](https://github.com/david-rapan/ha-solcast)  integracija į Home Assistant. 
 Iš šios integracijos bus naudojama pora sensorių einamos dienos prognozuojamai gamybai ir maksimaliai generacijai įvertinti.
 Paskirtis - įvertinti ar numatoma pakankama elektos gamyba iš saulės ir pagal tai suplanuoti, kada bus kraunamos baterijos, kad nakčiai jos būtų pilnai įkrautos.
