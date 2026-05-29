@@ -55,6 +55,16 @@ cards/
 
 ![Generation forecast](docs/img/generation_forecast.jpg)
 
+Kortelės parametrų reikšmės:
+- `Leisti krauti iki 100% (90/100)` - paprastomis dienomis baterija kraunama iki 90%, o įjungus šį jungiklį, kraunama iki 100%.
+- `Prognozuojama šiandien gamyba` - Solcast gamybos prognozė šiai dienai. Prognozė tikrinama kas 30min. ir ji dienos bėgyje gali kisti. Automatizacijos atsižvelgia į pokyčius.
+- `Reakcija į gamybos prognozę` - atsižvelgiant į jūsų elektrinės, kaupiklio dydį, namo poreikius, įrašote kiek preliminariai kWh reikėtų, kad patenkinti visus namo ir kaupiklių dienos poreikius.
+- `Rytinė reikalinga įkrova` - įrašote kokią reikėtų palaikyti minimalią baterijos įkrovą. Jeigu ryte baterijos įkrova bus mažesnė, nei nustatyta šiame parametre, tai inverteris pirmiausia kraus bateriją ir tik pasiekus šią reikšmę, toliau vykdys automatizacijas.
+- `Kaupiklio talpa` - kokios talpos kaupiklis prijungtas prie inverterio.
+- `Liko įkrauti (tik kaupiklis)` - stebėjimui, kiek kWh trūksta iki kaupiklio pilno įkrovimo.
+- `Liko įkrauti (su namų vartojimu)` - stebėjimui, kiek kWh trūksta, kad pilnai įkrauti kaupiklį ir namo poreikiams patenkinti.
+- `Liko prognazuojamos gamybos šiandien` - stebėjimui, kiek, pagal Solcast prognozę, dar bus šiandien pagaminta kWh.
+- `Papildoma namų vartojimo rezervacija` - jeigu namo vartojimas didesnis, nei rezervuota automatizacijoje, tai čia galima pridėti dar papildomą namo poreikį.
 Šiam scriptui reikalinga papildoma [Solcast_forecast](https://github.com/david-rapan/ha-solcast)  integracija į Home Assistant. 
 Iš šios integracijos bus naudojama pora sensorių einamos dienos prognozuojamai gamybai ir maksimaliai generacijai įvertinti.
 Paskirtis - įvertinti ar numatoma pakankama elektos gamyba iš saulės ir pagal tai suplanuoti, kada bus kraunamos baterijos, kad nakčiai jos būtų pilnai įkrautos.
