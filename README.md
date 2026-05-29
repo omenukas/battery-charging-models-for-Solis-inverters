@@ -176,38 +176,38 @@ Visi reikalingi helper sensoriai yra sukuriami packages failuose, tačiau invert
 
 Solis inverteris (Solis modbus integracija)
 
-sensor.solis_s6_eh3p_battery_soc
-sensor.solis_s6_eh3p_total_energy_imported_from_grid
-sensor.solis_s6_eh3p_total_energy_fed_into_grid
-sensor.solis_s6_eh3p_a_phase_voltage
-sensor.solis_s6_eh3p_b_phase_voltage
-sensor.solis_s6_eh3p_c_phase_voltage
-switch.feed_in_priority_mode
-switch.reserve_battery_mode
-switch.grid_time_of_use_charging_period_1
-switch.grid_time_of_use_charging_period_2
-switch.grid_time_of_use_discharge_period_1
-number.solis_s6_eh3p_backup_soc
-number.solis_s6_eh3p_grid_time_of_use_discharge_cut_off_soc_slot_1_2
-time.solis_s6_eh3p_grid_time_of_use_discharge_start_slot_1
-time.solis_s6_eh3p_grid_time_of_use_discharge_end_slot_1
+- sensor.solis_s6_eh3p_battery_soc
+- sensor.solis_s6_eh3p_total_energy_imported_from_grid
+- sensor.solis_s6_eh3p_total_energy_fed_into_grid
+- sensor.solis_s6_eh3p_a_phase_voltage
+- sensor.solis_s6_eh3p_b_phase_voltage
+- sensor.solis_s6_eh3p_c_phase_voltage
+- switch.feed_in_priority_mode
+- switch.reserve_battery_mode
+- switch.grid_time_of_use_charging_period_1
+- switch.grid_time_of_use_charging_period_2
+- switch.grid_time_of_use_discharge_period_1
+- number.solis_s6_eh3p_backup_soc
+- number.solis_s6_eh3p_grid_time_of_use_discharge_cut_off_soc_slot_1_2
+- time.solis_s6_eh3p_grid_time_of_use_discharge_start_slot_1
+- time.solis_s6_eh3p_grid_time_of_use_discharge_end_slot_1
 
 Solcast (Solcast PV Forecast integracija)
 
-sensor.solcast_pv_forecast_forecast_today
-sensor.solcast_pv_forecast_forecast_tomorrow
-sensor.solcast_pv_forecast_forecast_remaining_today
+- sensor.solcast_pv_forecast_forecast_today
+- sensor.solcast_pv_forecast_forecast_tomorrow
+- sensor.solcast_pv_forecast_forecast_remaining_today
 
 
 Nord Pool (nordpool integracija)
 
-sensor.electricity_prices (per atributą data)
-sensor.nord_pool_lt_current_price
+- sensor.electricity_prices (per atributą data)
+- sensor.nord_pool_lt_current_price
 
 
 Google Calendar (google_calendar integracija)
 
-calendar.eso_planiniai_darbai
+- calendar.eso_planiniai_darbai
 
 Jeigu patiko mano darbas, visada galite tai įvertinti 
 
