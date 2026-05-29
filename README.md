@@ -85,6 +85,15 @@ Atsisiųsti kortelę - [Akumuliatorių krovimo nuo saulės kortelė](cards/lt/lt
 
 ![Grid balancing](docs/img/balancing_card.PNG)
 
+Kortelės parametrų reikšmės:
+- `Vykdyti tinklų balansavimo režimą` - įjungus bus vykdoma automatizacija, kai pagal NordPool kainas vykdomas baterijų iškrovimas ir įkrovimas.
+- `Kaupiklio iškrovimo aktyvavimas` - stebėjimui ar vykdomas šiuo metu baterijos iškrovimas į tinklą.
+- `Ribinė NP kaina` - čia galite įvesti ribinę elektros kainą. Jeigu NordPool kaina dienos metu nesieks šios jūsų nustatytos ribos, tai nebus vykdomas baterijų įškrovimas į tinklą ir bus vykdoma paprasta dienos logika.
+- `Iki kiek iškrauti kaupiklį` - pasirenkate iki kiek iškrauti kaupiklį, kai bus vykdomas baterijos iškrovimas į tinklą.
+- `Kaupiklio iškrovimo srovė` - pasirenkate kokia srove bus iškraunamas kaupiklis į tinklą.
+- `Brangiausių valandų pradžia` ir `Brangiausių valandų ppabaiga` - tai trijų valandų laiko tarpas, kada pagal NordPool bus didžiausios elektros kainos (tikrinama tik pirma dienos pusė, nes antroje dienos pusėje prioritetas paruošti kaupiklį vakarui).
+- `Pigiausių valandų pradžia` ir `Pigiausių valandų pabaiga` - tai dviejų valandų laiko tarpas, kada pagal NordPool bus mažiausios elektros kainos ir tada prioritetas pagamintą elektrą skirti baterijos įkrovimui.
+- `Pigiausių va. įkrova` - nustatykite iki kiek procentų krauti bateriją pigiausiomis valandomis. Rekomenduoju nesirinkti 100%, nes tokiu atveju, pasibaigus pigiausioms valandoms ir, jeigu buvo gamybos perviršis, tai nebus kur jo padėti ir tiesiog prarasite dalį kWh.
 
 5:00, kai pradedama vykdyti dienos logikos automatizacija, dar yra tikrinama ar įjungtas `Vykdyti balansavimo režimą` jungiklis. Jeigu jis yra įjungtas, tai pradedama vykdyti papildoma automatizacijos atšaka.
 Pagal NordPool tos dienos duomenis, ieško rytinių 3 brangiausių valandų. Atėjus tam laikui, įjungiamas baterijų iškrovimo į tinklą, režimas. Kortelėje galite nustatyti kokia srove bus vykdomas iškrovimas. Pasibaigus brangiausių valandų laikui arba baterijai pasiekus `iki kiek iškrauti kaupiklį` reikšmę, išjungiamas iškrovimo režimas ir ieškoma tos dienos pigiausiu dviejų valandų. Iki to laiko inverteris veikia "Feed in priority" režimu ir kas pusvalandį tikrina prognozes, kaip tai aprašyta dienos logikoje. Atėjus pigiausių valandų laikui, perjungiama į "Self use" režimą kol praeis tos 2 valandos arba bus pasiekta įkrova nustatyta kortelėje `Pigiausių valandų įkrova`. Tada grįžtama prie dienos logikos.
